@@ -1,0 +1,208 @@
+package com.photovault.locker.activities
+
+import android.Manifest
+import android.content.pm.PackageManager
+import android.database.Cursor
+import android.net.Uri
+import android.os.Bundle
+import android.provider.MediaStore
+import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
+import com.photovault.locker.R
+import com.photovault.locker.adapters.GalleryPhotoAdapter
+import com.photovault.locker.databinding.ActivityPhotoImportBinding
+import com.photovault.locker.models.GalleryPhoto
+import com.photovault.locker.utils.PermissionUtils
+import com.photovault.locker.viewmodels.PhotoImportViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+class PhotoImportActivity : AppCompatActivity() {
+    
+    private lateinit var binding: ActivityPhotoImportBinding
+    private lateinit var viewModel: PhotoImportViewModel
+    private lateinit var galleryAdapter: GalleryPhotoAdapter
+    
+    private var albumId: Long = -1
+    private var albumName: String = ""
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityPhotoImportBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        
+        getIntentExtras()
+        setupToolbar()
+        setupViewModel()
+        setupRecyclerView()
+        setupListeners()
+        
+        if (PermissionUtils.hasStoragePermissions(this)) {
+            loadGalleryPhotos()
+        } else {
+            finish()
+        }
+    }
+    
+    private fun getIntentExtras() {
+        albumId = intent.getLongExtra("album_id", -1)
+        albumName = intent.getStringExtra("album_name") ?: "Album"
+        
+        if (albumId == -1L) {
+            finish()
+            return
+        }
+    }
+    
+    private fun setupToolbar() {
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.apply {
+            title = "Select Photos"
+            setDisplayHomeAsUpEnabled(true)
+        }
+        
+        binding.toolbar.setNavigationOnClickListener {
+            onBackPressed()
+        }
+    }
+    
+    private fun setupViewModel() {
+        val factory = PhotoImportViewModel.Factory(application, albumId, albumName)
+        viewModel = ViewModelProvider(this, factory)[PhotoImportViewModel::class.java]
+    }
+    
+    private fun setupRecyclerView() {
+        galleryAdapter = GalleryPhotoAdapter { selectedCount ->
+            updateUI(selectedCount)
+        }
+        
+        binding.rvGalleryPhotos.apply {
+            layoutManager = GridLayoutManager(this@PhotoImportActivity, 3)
+            adapter = galleryAdapter
+        }
+    }
+    
+    private fun setupListeners() {
+        binding.btnImport.setOnClickListener {
+            importSelectedPhotos()
+        }
+        
+        // Observe import progress
+        viewModel.importProgress.observe(this) { progress ->
+            // You could show a progress dialog here
+        }
+        
+        viewModel.importComplete.observe(this) { (success, count) ->
+            if (success) {
+                val message = getString(R.string.photos_imported, count)
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                finish()
+            } else {
+                Toast.makeText(this, getString(R.string.import_failed), Toast.LENGTH_LONG).show()
+            }
+        }
+        
+        viewModel.error.observe(this) { error ->
+            if (error.isNotEmpty()) {
+                Toast.makeText(this, error, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+    
+    private fun loadGalleryPhotos() {
+        lifecycleScope.launch {
+            try {
+                val photos = withContext(Dispatchers.IO) {
+                    loadPhotosFromMediaStore()
+                }
+                
+                withContext(Dispatchers.Main) {
+                    binding.llLoading.visibility = View.GONE
+                    
+                    if (photos.isNotEmpty()) {
+                        galleryAdapter.submitList(photos)
+                        binding.rvGalleryPhotos.visibility = View.VISIBLE
+                    } else {
+                        binding.llEmptyState.visibility = View.VISIBLE
+                    }
+                }
+                
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    binding.llLoading.visibility = View.GONE
+                    binding.llEmptyState.visibility = View.VISIBLE
+                    Toast.makeText(this@PhotoImportActivity, "Failed to load photos", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+    
+    private fun loadPhotosFromMediaStore(): List<GalleryPhoto> {
+        val photos = mutableListOf<GalleryPhoto>()
+        
+        val projection = arrayOf(
+            MediaStore.Images.Media._ID,
+            MediaStore.Images.Media.DISPLAY_NAME,
+            MediaStore.Images.Media.SIZE,
+            MediaStore.Images.Media.DATE_MODIFIED
+        )
+        
+        val selection = "${MediaStore.Images.Media.SIZE} > ?"
+        val selectionArgs = arrayOf("0")
+        val sortOrder = "${MediaStore.Images.Media.DATE_MODIFIED} DESC"
+        
+        contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            selection,
+            selectionArgs,
+            sortOrder
+        )?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+            val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
+            val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
+            val dateColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_MODIFIED)
+            
+            while (cursor.moveToNext()) {
+                val id = cursor.getLong(idColumn)
+                val name = cursor.getString(nameColumn)
+                val size = cursor.getLong(sizeColumn)
+                val date = cursor.getLong(dateColumn)
+                
+                val uri = Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id.toString())
+                
+                photos.add(GalleryPhoto(id, uri, name, size, date))
+            }
+        }
+        
+        return photos
+    }
+    
+    private fun updateUI(selectedCount: Int) {
+        if (selectedCount > 0) {
+            binding.tvSelectedCount.text = "$selectedCount photo${if (selectedCount == 1) "" else "s"} selected"
+            binding.btnImport.isEnabled = true
+        } else {
+            binding.tvSelectedCount.text = "Select photos to import"
+            binding.btnImport.isEnabled = false
+        }
+    }
+    
+    private fun importSelectedPhotos() {
+        val selectedPhotos = galleryAdapter.getSelectedPhotos()
+        if (selectedPhotos.isNotEmpty()) {
+            binding.btnImport.isEnabled = false
+            binding.btnImport.text = "Importing..."
+            
+            viewModel.importPhotos(selectedPhotos)
+        }
+    }
+}
+

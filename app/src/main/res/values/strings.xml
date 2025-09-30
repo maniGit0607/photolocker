@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PhotoVault Locker</string>
+    
+    <!-- Authentication -->
+    <string name="enter_password">Enter Password</string>
+    <string name="set_password">Set Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="password_hint">Password</string>
+    <string name="unlock">Unlock</string>
+    <string name="setup_password">Setup Password</string>
+    <string name="wrong_password">Incorrect password. Please try again.</string>
+    <string name="password_mismatch">Passwords do not match. Please try again.</string>
+    <string name="password_set_success">Password set successfully!</string>
+    
+    <!-- Album Management -->
+    <string name="albums">Albums</string>
+    <string name="create_album">Create Album</string>
+    <string name="album_name">Album Name</string>
+    <string name="album_name_hint">Enter album name</string>
+    <string name="create">Create</string>
+    <string name="cancel">Cancel</string>
+    <string name="album_created">Album created successfully!</string>
+    <string name="album_name_required">Album name is required</string>
+    <string name="album_exists">Album with this name already exists</string>
+    <string name="no_albums">No albums created yet</string>
+    <string name="delete_album">Delete Album</string>
+    <string name="delete_album_confirmation">Are you sure you want to delete this album and all its photos?</string>
+    <string name="delete">Delete</string>
+    
+    <!-- Photo Management -->
+    <string name="photos">Photos</string>
+    <string name="add_photos">Add Photos</string>
+    <string name="import_photos">Import Photos</string>
+    <string name="select_photos">Select Photos</string>
+    <string name="photos_imported">%d photos imported successfully</string>
+    <string name="no_photos">No photos in this album</string>
+    <string name="photo_deleted_from_gallery">Photo deleted from gallery</string>
+    <string name="import_failed">Failed to import some photos</string>
+    <string name="storage_permission_required">Storage permission is required to access your photos</string>
+    <string name="grant_permission">Grant Permission</string>
+    
+    <!-- General -->
+    <string name="ok">OK</string>
+    <string name="back">Back</string>
+    <string name="settings">Settings</string>
+    <string name="change_password">Change Password</string>
+    <string name="current_password">Current Password</string>
+    <string name="new_password">New Password</string>
+    <string name="about">About</string>
+    <string name="version">Version</string>
+    
+    <!-- Photo Viewer -->
+    <string name="photo_of">%1$d of %2$d</string>
+    <string name="delete_photo">Delete Photo</string>
+    <string name="delete_photo_confirmation">Are you sure you want to delete this photo?</string>
+    
+    <!-- Errors -->
+    <string name="error_occurred">An error occurred</string>
+    <string name="try_again">Try again</string>
+    <string name="permission_denied">Permission denied</string>
+</resources>
+

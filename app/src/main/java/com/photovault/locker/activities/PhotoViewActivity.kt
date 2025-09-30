@@ -1,0 +1,172 @@
+package com.photovault.locker.activities
+
+import android.os.Bundle
+import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.photovault.locker.R
+import com.photovault.locker.adapters.PhotoViewPagerAdapter
+import com.photovault.locker.databinding.ActivityPhotoViewBinding
+import com.photovault.locker.models.Photo
+import com.photovault.locker.viewmodels.PhotoViewViewModel
+import java.text.SimpleDateFormat
+import java.util.*
+
+class PhotoViewActivity : AppCompatActivity() {
+    
+    private lateinit var binding: ActivityPhotoViewBinding
+    private lateinit var viewModel: PhotoViewViewModel
+    private lateinit var pagerAdapter: PhotoViewPagerAdapter
+    
+    private var albumId: Long = -1
+    private var photoId: Long = -1
+    private var initialPosition: Int = 0
+    private var photos = listOf<Photo>()
+    private var overlayVisible = true
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityPhotoViewBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        
+        getIntentExtras()
+        setupViewModel()
+        setupListeners()
+        observeData()
+    }
+    
+    private fun getIntentExtras() {
+        albumId = intent.getLongExtra("album_id", -1)
+        photoId = intent.getLongExtra("photo_id", -1)
+        initialPosition = intent.getIntExtra("photo_position", 0)
+        
+        if (albumId == -1L || photoId == -1L) {
+            finish()
+            return
+        }
+    }
+    
+    private fun setupViewModel() {
+        val factory = PhotoViewViewModel.Factory(application, albumId)
+        viewModel = ViewModelProvider(this, factory)[PhotoViewViewModel::class.java]
+    }
+    
+    private fun setupListeners() {
+        binding.btnBack.setOnClickListener {
+            finish()
+        }
+        
+        binding.btnDelete.setOnClickListener {
+            showDeleteConfirmation()
+        }
+        
+        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                updatePhotoInfo(position)
+            }
+        })
+    }
+    
+    private fun observeData() {
+        viewModel.photos.observe(this) { photosList ->
+            photos = photosList
+            setupViewPager()
+            
+            // Find the position of the selected photo
+            val position = photos.indexOfFirst { it.id == photoId }
+            if (position >= 0) {
+                binding.viewPager.setCurrentItem(position, false)
+                updatePhotoInfo(position)
+            }
+        }
+        
+        viewModel.error.observe(this) { error ->
+            if (error.isNotEmpty()) {
+                Toast.makeText(this, error, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+    
+    private fun setupViewPager() {
+        pagerAdapter = PhotoViewPagerAdapter(photos) {
+            toggleOverlayVisibility()
+        }
+        
+        binding.viewPager.adapter = pagerAdapter
+    }
+    
+    private fun updatePhotoInfo(position: Int) {
+        if (position < photos.size) {
+            val photo = photos[position]
+            val currentPos = position + 1
+            val totalCount = photos.size
+            
+            binding.tvPhotoCounter.text = getString(R.string.photo_of, currentPos, totalCount)
+            binding.tvPhotoName.text = photo.originalName
+            
+            // Format photo info
+            val dateFormat = SimpleDateFormat("MMM dd, yyyy 'at' HH:mm", Locale.getDefault())
+            val formattedDate = dateFormat.format(photo.importedDate)
+            val sizeInMB = photo.fileSize / (1024.0 * 1024.0)
+            val dimensions = if (photo.width > 0 && photo.height > 0) {
+                " • ${photo.width} × ${photo.height}"
+            } else ""
+            
+            binding.tvPhotoInfo.text = "$formattedDate • ${String.format("%.1f MB", sizeInMB)}$dimensions"
+        }
+    }
+    
+    private fun toggleOverlayVisibility() {
+        overlayVisible = !overlayVisible
+        
+        val visibility = if (overlayVisible) View.VISIBLE else View.GONE
+        binding.topOverlay.visibility = visibility
+        binding.bottomOverlay.visibility = visibility
+    }
+    
+    private fun showDeleteConfirmation() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.delete_photo))
+            .setMessage(getString(R.string.delete_photo_confirmation))
+            .setPositiveButton(getString(R.string.delete)) { _, _ ->
+                deleteCurrentPhoto()
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+    
+    private fun deleteCurrentPhoto() {
+        val currentPosition = binding.viewPager.currentItem
+        if (currentPosition < photos.size) {
+            val currentPhoto = photos[currentPosition]
+            viewModel.deletePhoto(currentPhoto)
+            
+            Toast.makeText(this, "Photo deleted", Toast.LENGTH_SHORT).show()
+            
+            // If this was the only photo, finish the activity
+            if (photos.size == 1) {
+                finish()
+            }
+        }
+    }
+    
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            // Hide system UI for immersive experience
+            window.decorView.systemUiVisibility = (
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_FULLSCREEN
+            )
+        }
+    }
+}
+
