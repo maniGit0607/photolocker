@@ -29,14 +29,26 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: MainViewModel
     private lateinit var albumAdapter: AlbumAdapter
+    private var hasRequestedPermissions = false
     
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val allGranted = permissions.values.all { it }
         if (!allGranted) {
-            showPermissionRationaleDialog()
+            // Check if any permission was actually granted
+            val anyGranted = permissions.values.any { it }
+            if (anyGranted || !hasRequestedPermissions) {
+                // Some permissions granted or first request, check again
+                if (!PermissionUtils.hasStoragePermissions(this)) {
+                    showPermissionRationaleDialog()
+                }
+            } else {
+                // User denied permissions, show rationale
+                showPermissionRationaleDialog()
+            }
         }
+        hasRequestedPermissions = true
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -124,11 +136,29 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun showPermissionRationaleDialog() {
+        val message = if (hasRequestedPermissions) {
+            "Storage permission is required to access and manage photos. Please go to Settings > Apps > PhotoVault Locker > Permissions and enable storage/media access."
+        } else {
+            getString(R.string.storage_permission_required)
+        }
+        
         MaterialAlertDialogBuilder(this)
             .setTitle("Storage Permission Required")
-            .setMessage(getString(R.string.storage_permission_required))
-            .setPositiveButton(getString(R.string.grant_permission)) { _, _ ->
-                requestPermissions()
+            .setMessage(message)
+            .setPositiveButton(if (hasRequestedPermissions) "Open Settings" else getString(R.string.grant_permission)) { _, _ ->
+                if (hasRequestedPermissions) {
+                    // Open app settings
+                    try {
+                        val intent = android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        val uri = android.net.Uri.fromParts("package", packageName, null)
+                        intent.data = uri
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        Toast.makeText(this, "Please enable storage permission in system settings", Toast.LENGTH_LONG).show()
+                    }
+                } else {
+                    requestPermissions()
+                }
             }
             .setNegativeButton(getString(R.string.cancel), null)
             .show()
@@ -220,6 +250,15 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Recheck permissions when returning from settings
+        if (hasRequestedPermissions && PermissionUtils.hasStoragePermissions(this)) {
+            // Permissions granted, refresh album information
+            viewModel.updateAlbumPhotoCounts()
         }
     }
 }
