@@ -110,6 +110,7 @@ class PhotoImportActivity : AppCompatActivity() {
     }
     
     private fun setupRecyclerView() {
+        android.util.Log.d("PhotoImportActivity", "Setting up RecyclerView")
         galleryAdapter = GalleryPhotoAdapter { selectedCount ->
             updateUI(selectedCount)
         }
@@ -117,6 +118,13 @@ class PhotoImportActivity : AppCompatActivity() {
         binding.rvGalleryPhotos.apply {
             layoutManager = GridLayoutManager(this@PhotoImportActivity, 3)
             adapter = galleryAdapter
+            
+            // Debug RecyclerView layout
+            post {
+                android.util.Log.d("PhotoImportActivity", "RecyclerView dimensions: ${width}x${height}")
+                android.util.Log.d("PhotoImportActivity", "RecyclerView visibility: $visibility")
+                android.util.Log.d("PhotoImportActivity", "RecyclerView adapter item count: ${adapter?.itemCount}")
+            }
         }
     }
     
@@ -156,12 +164,29 @@ class PhotoImportActivity : AppCompatActivity() {
                 
                 withContext(Dispatchers.Main) {
                     binding.llLoading.visibility = View.GONE
+                    Toast.makeText(this@PhotoImportActivity, "Found ${photos.size} photos in gallery", Toast.LENGTH_LONG).show()
                     
                     if (photos.isNotEmpty()) {
+                        Toast.makeText(this@PhotoImportActivity, "Submitting ${photos.size} photos to adapter", Toast.LENGTH_SHORT).show()
                         galleryAdapter.submitList(photos)
+                        
+                        Toast.makeText(this@PhotoImportActivity, "Making RecyclerView visible", Toast.LENGTH_SHORT).show()
+                        
+                        // Ensure proper visibility states
+                        binding.llLoading.visibility = View.GONE
+                        binding.llEmptyState.visibility = View.GONE
                         binding.rvGalleryPhotos.visibility = View.VISIBLE
+                        
+                        android.util.Log.d("PhotoImportActivity", "View visibility states - RecyclerView: ${binding.rvGalleryPhotos.visibility}, Empty: ${binding.llEmptyState.visibility}, Loading: ${binding.llLoading.visibility}")
+                        
+                        // Check adapter item count after a delay
+                        binding.rvGalleryPhotos.post {
+                            Toast.makeText(this@PhotoImportActivity, "Adapter item count: ${galleryAdapter.itemCount}", Toast.LENGTH_LONG).show()
+                        }
                     } else {
                         binding.llEmptyState.visibility = View.VISIBLE
+                        binding.rvGalleryPhotos.visibility = View.GONE
+                        Toast.makeText(this@PhotoImportActivity, "No photos found - showing empty state", Toast.LENGTH_LONG).show()
                     }
                 }
                 
