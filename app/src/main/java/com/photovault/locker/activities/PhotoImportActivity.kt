@@ -48,20 +48,34 @@ class PhotoImportActivity : AppCompatActivity() {
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityPhotoImportBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        
-        getIntentExtras()
-        setupToolbar()
-        setupViewModel()
-        setupRecyclerView()
-        setupListeners()
-        
-        if (PermissionUtils.hasStoragePermissions(this)) {
-            loadGalleryPhotos()
-        } else {
-            requestPermissions()
+        try {
+            Toast.makeText(this, "PhotoImportActivity onCreate started", Toast.LENGTH_SHORT).show()
+            super.onCreate(savedInstanceState)
+            binding = ActivityPhotoImportBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+            
+            Toast.makeText(this, "Getting intent extras", Toast.LENGTH_SHORT).show()
+            getIntentExtras()
+            
+            Toast.makeText(this, "Setting up UI", Toast.LENGTH_SHORT).show()
+            setupToolbar()
+            setupViewModel()
+            setupRecyclerView()
+            setupListeners()
+            
+            Toast.makeText(this, "Checking permissions", Toast.LENGTH_SHORT).show()
+            if (PermissionUtils.hasStoragePermissions(this)) {
+                Toast.makeText(this, "Permissions granted, loading photos", Toast.LENGTH_SHORT).show()
+                loadGalleryPhotos()
+            } else {
+                Toast.makeText(this, "Requesting permissions", Toast.LENGTH_SHORT).show()
+                requestPermissions()
+            }
+            
+            Toast.makeText(this, "PhotoImportActivity onCreate completed", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error in PhotoImportActivity onCreate: ${e.message}", Toast.LENGTH_LONG).show()
+            finish()
         }
     }
     
@@ -69,7 +83,10 @@ class PhotoImportActivity : AppCompatActivity() {
         albumId = intent.getLongExtra("album_id", -1)
         albumName = intent.getStringExtra("album_name") ?: "Album"
         
+        Toast.makeText(this, "Album ID: $albumId, Album Name: $albumName", Toast.LENGTH_SHORT).show()
+        
         if (albumId == -1L) {
+            Toast.makeText(this, "Invalid album ID, finishing activity", Toast.LENGTH_LONG).show()
             finish()
             return
         }

@@ -103,10 +103,17 @@ class AlbumViewActivity : AppCompatActivity() {
     
     private fun setupFab() {
         binding.fabAddPhotos.setOnClickListener {
-            if (PermissionUtils.hasStoragePermissions(this)) {
-                startPhotoImportActivity()
-            } else {
-                requestPermissionLauncher.launch(PermissionUtils.getRequiredPermissions())
+            Toast.makeText(this, "FAB clicked!", Toast.LENGTH_SHORT).show()
+            try {
+                if (PermissionUtils.hasStoragePermissions(this)) {
+                    Toast.makeText(this, "Permissions granted, starting import", Toast.LENGTH_SHORT).show()
+                    startPhotoImportActivity()
+                } else {
+                    Toast.makeText(this, "Requesting permissions", Toast.LENGTH_SHORT).show()
+                    requestPermissionLauncher.launch(PermissionUtils.getRequiredPermissions())
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -132,11 +139,18 @@ class AlbumViewActivity : AppCompatActivity() {
     }
     
     private fun startPhotoImportActivity() {
-        val intent = Intent(this, PhotoImportActivity::class.java).apply {
-            putExtra("album_id", albumId)
-            putExtra("album_name", albumName)
+        try {
+            Toast.makeText(this, "Creating intent for PhotoImportActivity", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, PhotoImportActivity::class.java).apply {
+                putExtra("album_id", albumId)
+                putExtra("album_name", albumName)
+            }
+            Toast.makeText(this, "Starting PhotoImportActivity", Toast.LENGTH_SHORT).show()
+            startActivity(intent)
+            Toast.makeText(this, "PhotoImportActivity started successfully", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Failed to start PhotoImportActivity: ${e.message}", Toast.LENGTH_LONG).show()
         }
-        startActivity(intent)
     }
     
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
