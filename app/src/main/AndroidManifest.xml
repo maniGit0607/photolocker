@@ -39,14 +39,14 @@
             android:name=".activities.MainActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhotoVaultLocker" />
+            android:theme="@style/Theme.PhotoVaultLocker.NoActionBar" />
 
         <!-- Album View Activity -->
         <activity
             android:name=".activities.AlbumViewActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhotoVaultLocker" />
+            android:theme="@style/Theme.PhotoVaultLocker.NoActionBar" />
 
         <!-- Photo View Activity -->
         <activity
@@ -60,7 +60,7 @@
             android:name=".activities.PhotoImportActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhotoVaultLocker" />
+            android:theme="@style/Theme.PhotoVaultLocker.NoActionBar" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
