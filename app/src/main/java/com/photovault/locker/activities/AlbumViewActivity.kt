@@ -6,6 +6,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
@@ -25,6 +26,17 @@ class AlbumViewActivity : AppCompatActivity() {
     
     private var albumId: Long = -1
     private var albumName: String = ""
+    
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.values.all { it }
+        if (allGranted) {
+            startPhotoImportActivity()
+        } else {
+            Toast.makeText(this, "Storage permission is required to import photos", Toast.LENGTH_LONG).show()
+        }
+    }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,7 +106,7 @@ class AlbumViewActivity : AppCompatActivity() {
             if (PermissionUtils.hasStoragePermissions(this)) {
                 startPhotoImportActivity()
             } else {
-                Toast.makeText(this, getString(R.string.storage_permission_required), Toast.LENGTH_SHORT).show()
+                requestPermissionLauncher.launch(PermissionUtils.getRequiredPermissions())
             }
         }
     }

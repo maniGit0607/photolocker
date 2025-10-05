@@ -126,8 +126,12 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun checkPermissions() {
-        if (!PermissionUtils.hasStoragePermissions(this)) {
+        val hasPermissions = PermissionUtils.hasStoragePermissions(this)
+        if (!hasPermissions) {
             requestPermissions()
+        } else {
+            // Permissions already granted
+            viewModel.updateAlbumPhotoCounts()
         }
     }
     
@@ -247,6 +251,15 @@ class MainActivity : AppCompatActivity() {
             R.id.action_about -> {
                 // TODO: Implement about dialog
                 Toast.makeText(this, "PhotoVault Locker v1.0", Toast.LENGTH_SHORT).show()
+                true
+            }
+            R.id.action_permissions -> {
+                // Force request permissions for testing
+                if (PermissionUtils.hasStoragePermissions(this)) {
+                    Toast.makeText(this, "Storage permissions already granted", Toast.LENGTH_SHORT).show()
+                } else {
+                    requestPermissions()
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)

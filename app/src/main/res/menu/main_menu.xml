@@ -13,6 +13,11 @@
         android:title="@string/about"
         android:icon="@drawable/ic_info"
         app:showAsAction="never" />
+    
+    <item
+        android:id="@+id/action_permissions"
+        android:title="Check Permissions"
+        app:showAsAction="never" />
 
 </menu>
 

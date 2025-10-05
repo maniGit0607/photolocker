@@ -1,6 +1,7 @@
 package com.photovault.locker.activities
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
@@ -8,12 +9,14 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.photovault.locker.R
 import com.photovault.locker.adapters.GalleryPhotoAdapter
 import com.photovault.locker.databinding.ActivityPhotoImportBinding
@@ -33,6 +36,17 @@ class PhotoImportActivity : AppCompatActivity() {
     private var albumId: Long = -1
     private var albumName: String = ""
     
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.values.all { it }
+        if (allGranted) {
+            loadGalleryPhotos()
+        } else {
+            showPermissionDeniedDialog()
+        }
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityPhotoImportBinding.inflate(layoutInflater)
@@ -47,7 +61,7 @@ class PhotoImportActivity : AppCompatActivity() {
         if (PermissionUtils.hasStoragePermissions(this)) {
             loadGalleryPhotos()
         } else {
-            finish()
+            requestPermissions()
         }
     }
     
@@ -203,6 +217,30 @@ class PhotoImportActivity : AppCompatActivity() {
             
             viewModel.importPhotos(selectedPhotos)
         }
+    }
+    
+    private fun requestPermissions() {
+        requestPermissionLauncher.launch(PermissionUtils.getRequiredPermissions())
+    }
+    
+    private fun showPermissionDeniedDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Storage Permission Required")
+            .setMessage("Storage permission is required to access and import photos. Please go to Settings > Apps > PhotoVault Locker > Permissions and enable storage/media access.")
+            .setPositiveButton("Open Settings") { _, _ ->
+                try {
+                    val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    val uri = Uri.fromParts("package", packageName, null)
+                    intent.data = uri
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Toast.makeText(this, "Please enable storage permission in system settings", Toast.LENGTH_LONG).show()
+                }
+            }
+            .setNegativeButton("Cancel") { _, _ ->
+                finish()
+            }
+            .show()
     }
 }
 
