@@ -130,7 +130,11 @@ class AlbumViewActivity : AppCompatActivity() {
     private fun observeData() {
         viewModel.photos.observe(this) { photos ->
             android.util.Log.d("AlbumViewActivity", "Photos LiveData updated with ${photos.size} photos")
-            photoAdapter.submitList(photos)
+            android.util.Log.d("AlbumViewActivity", "Photos data: ${photos.map { it.originalName }}")
+            
+            photoAdapter.submitList(photos) {
+                android.util.Log.d("AlbumViewActivity", "Adapter updated with ${photos.size} photos")
+            }
             
             if (photos.isEmpty()) {
                 binding.rvPhotos.visibility = View.GONE
@@ -140,12 +144,21 @@ class AlbumViewActivity : AppCompatActivity() {
                 binding.rvPhotos.visibility = View.VISIBLE
                 binding.llEmptyState.visibility = View.GONE
                 android.util.Log.d("AlbumViewActivity", "Showing photos in RecyclerView")
+                
+                // Force RecyclerView to refresh
+                binding.rvPhotos.invalidate()
+                android.util.Log.d("AlbumViewActivity", "RecyclerView invalidated")
             }
         }
         
         viewModel.refreshTrigger.observe(this) {
             android.util.Log.d("AlbumViewActivity", "Refresh trigger received")
-            // The photos LiveData should automatically update, but this gives us a signal
+            // Force a manual refresh of the adapter
+            val currentPhotos = viewModel.photos.value
+            if (currentPhotos != null) {
+                android.util.Log.d("AlbumViewActivity", "Manually refreshing adapter with ${currentPhotos.size} photos")
+                photoAdapter.submitList(currentPhotos)
+            }
         }
         
         viewModel.error.observe(this) { error ->

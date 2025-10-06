@@ -22,7 +22,9 @@ class AlbumViewViewModel(
     private val albumDao = database.albumDao()
     private val fileManager = FileManager(application)
     
-    val photos: LiveData<List<Photo>> = photoDao.getPhotosByAlbum(albumId)
+    // Use MutableLiveData instead of direct Room LiveData for better control
+    private val _photos = MutableLiveData<List<Photo>>()
+    val photos: LiveData<List<Photo>> = _photos
     
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> = _error
@@ -30,6 +32,24 @@ class AlbumViewViewModel(
     // Add a refresh trigger to force LiveData update
     private val _refreshTrigger = MutableLiveData<Unit>()
     val refreshTrigger: LiveData<Unit> = _refreshTrigger
+    
+    init {
+        // Load photos initially
+        loadPhotos()
+    }
+    
+    private fun loadPhotos() {
+        viewModelScope.launch {
+            try {
+                val photosList = photoDao.getPhotosByAlbumSync(albumId)
+                android.util.Log.d("AlbumViewViewModel", "Loaded ${photosList.size} photos from database")
+                _photos.value = photosList
+            } catch (e: Exception) {
+                android.util.Log.e("AlbumViewViewModel", "Failed to load photos: ${e.message}")
+                _error.value = "Failed to load photos: ${e.message}"
+            }
+        }
+    }
     
     fun deletePhotos(photoIds: List<Long>) {
         viewModelScope.launch {
@@ -50,6 +70,9 @@ class AlbumViewViewModel(
                 val firstPhoto = photoDao.getFirstPhotoInAlbum(albumId)
                 albumDao.updateCoverPhoto(albumId, firstPhoto?.filePath)
                 
+                // Refresh the photos list
+                loadPhotos()
+                
             } catch (e: Exception) {
                 _error.value = "Failed to delete photos: ${e.message}"
             }
@@ -66,13 +89,13 @@ class AlbumViewViewModel(
                 val firstPhoto = photoDao.getFirstPhotoInAlbum(albumId)
                 albumDao.updateCoverPhoto(albumId, firstPhoto?.filePath)
                 
-                // Check current photo count
+                // Reload photos from database and update LiveData
                 val currentPhotos = photoDao.getPhotosByAlbumSync(albumId)
                 android.util.Log.d("AlbumViewViewModel", "Album now has ${currentPhotos.size} photos")
                 
-                // Force a refresh by triggering the LiveData
-                // The photos LiveData should automatically update, but let's add some debugging
-                android.util.Log.d("AlbumViewViewModel", "LiveData photos value: ${photos.value?.size ?: "null"}")
+                // Update the LiveData with the new photos
+                _photos.value = currentPhotos
+                android.util.Log.d("AlbumViewViewModel", "Updated LiveData with ${currentPhotos.size} photos")
                 
                 // Trigger refresh to force UI update
                 _refreshTrigger.value = Unit
