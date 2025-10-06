@@ -322,12 +322,14 @@ class AlbumViewActivity : AppCompatActivity() {
     }
     
     private fun showActionButtons() {
-        binding.selectionActionButtons.visibility = android.view.View.VISIBLE
+        val selectionButtons = findViewById<android.widget.LinearLayout>(R.id.selectionActionButtons)
+        selectionButtons.visibility = android.view.View.VISIBLE
         binding.fabAddPhotos.visibility = android.view.View.GONE
     }
     
     private fun hideActionButtons() {
-        binding.selectionActionButtons.visibility = android.view.View.GONE
+        val selectionButtons = findViewById<android.widget.LinearLayout>(R.id.selectionActionButtons)
+        selectionButtons.visibility = android.view.View.GONE
         binding.fabAddPhotos.visibility = android.view.View.VISIBLE
     }
 }
