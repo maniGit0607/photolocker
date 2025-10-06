@@ -69,6 +69,10 @@ class PhotoImportViewModel(
                             val photoId = photoDao.insertPhoto(photo)
                             android.util.Log.d("PhotoImportViewModel", "Photo saved to database with ID: $photoId")
                             
+                            // Verify the photo was saved by querying it back
+                            val savedPhoto = photoDao.getPhotoById(photoId)
+                            android.util.Log.d("PhotoImportViewModel", "Verified photo in database: ${savedPhoto != null}")
+                            
                             // Delete from gallery (this is what the user requested)
                             try {
                                 fileManager.deletePhotoFromGallery(galleryPhoto.uri)
@@ -99,6 +103,10 @@ class PhotoImportViewModel(
                 albumDao.updatePhotoCount(albumId)
                 val firstPhoto = photoDao.getFirstPhotoInAlbum(albumId)
                 albumDao.updateCoverPhoto(albumId, firstPhoto?.filePath)
+                
+                // Final verification - check total photos in album
+                val finalPhotoCount = photoDao.getPhotoCountByAlbum(albumId)
+                android.util.Log.d("PhotoImportViewModel", "Final photo count in album: $finalPhotoCount")
                 
                 android.util.Log.d("PhotoImportViewModel", "Album metadata updated")
                 
