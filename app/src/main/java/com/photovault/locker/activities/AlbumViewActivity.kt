@@ -38,6 +38,15 @@ class AlbumViewActivity : AppCompatActivity() {
         }
     }
     
+    private val photoImportLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            // Photos were imported successfully, refresh the view
+            viewModel.refreshPhotos()
+        }
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAlbumViewBinding.inflate(layoutInflater)
@@ -139,18 +148,11 @@ class AlbumViewActivity : AppCompatActivity() {
     }
     
     private fun startPhotoImportActivity() {
-        try {
-            Toast.makeText(this, "Creating intent for PhotoImportActivity", Toast.LENGTH_SHORT).show()
-            val intent = Intent(this, PhotoImportActivity::class.java).apply {
-                putExtra("album_id", albumId)
-                putExtra("album_name", albumName)
-            }
-            Toast.makeText(this, "Starting PhotoImportActivity", Toast.LENGTH_SHORT).show()
-            startActivity(intent)
-            Toast.makeText(this, "PhotoImportActivity started successfully", Toast.LENGTH_SHORT).show()
-        } catch (e: Exception) {
-            Toast.makeText(this, "Failed to start PhotoImportActivity: ${e.message}", Toast.LENGTH_LONG).show()
+        val intent = Intent(this, PhotoImportActivity::class.java).apply {
+            putExtra("album_id", albumId)
+            putExtra("album_name", albumName)
         }
+        photoImportLauncher.launch(intent)
     }
     
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

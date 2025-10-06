@@ -18,20 +18,17 @@ class GalleryPhotoAdapter(
     private val selectedPhotos = mutableSetOf<Long>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GalleryPhotoViewHolder {
-        android.util.Log.d("GalleryPhotoAdapter", "onCreateViewHolder called")
         val binding = ItemGalleryPhotoBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return GalleryPhotoViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: GalleryPhotoViewHolder, position: Int) {
-        android.util.Log.d("GalleryPhotoAdapter", "onBindViewHolder called for position $position")
         holder.bind(getItem(position))
     }
 
     inner class GalleryPhotoViewHolder(private val binding: ItemGalleryPhotoBinding) : RecyclerView.ViewHolder(binding.root) {
         
         fun bind(photo: GalleryPhoto) {
-            android.util.Log.d("GalleryPhotoAdapter", "Binding photo: ${photo.name}, URI: ${photo.uri}")
             binding.apply {
                 // Load photo
                 Glide.with(ivGalleryPhoto.context)
@@ -39,17 +36,6 @@ class GalleryPhotoAdapter(
                     .centerCrop()
                     .placeholder(R.drawable.ic_photo)
                     .error(R.drawable.ic_photo)
-                    .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
-                        override fun onLoadFailed(e: com.bumptech.glide.load.engine.GlideException?, model: Any?, target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?, isFirstResource: Boolean): Boolean {
-                            android.util.Log.e("GalleryPhotoAdapter", "Glide load failed for URI: ${photo.uri}, error: $e")
-                            return false
-                        }
-                        
-                        override fun onResourceReady(resource: android.graphics.drawable.Drawable?, model: Any?, target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?, dataSource: com.bumptech.glide.load.DataSource?, isFirstResource: Boolean): Boolean {
-                            android.util.Log.d("GalleryPhotoAdapter", "Glide loaded successfully for URI: ${photo.uri}")
-                            return false
-                        }
-                    })
                     .into(ivGalleryPhoto)
 
                 // Handle selection state

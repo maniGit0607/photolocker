@@ -37,15 +37,20 @@ class PhotoImportViewModel(
     fun importPhotos(galleryPhotos: List<GalleryPhoto>) {
         viewModelScope.launch {
             try {
+                android.util.Log.d("PhotoImportViewModel", "Starting import of ${galleryPhotos.size} photos to album $albumId")
                 var successCount = 0
                 val totalCount = galleryPhotos.size
                 
                 for ((index, galleryPhoto) in galleryPhotos.withIndex()) {
                     try {
+                        android.util.Log.d("PhotoImportViewModel", "Importing photo ${index + 1}/$totalCount: ${galleryPhoto.displayName}")
+                        
                         // Copy photo to app storage
                         val copiedPath = fileManager.copyPhotoToAppStorage(galleryPhoto.uri, albumName)
                         
                         if (copiedPath != null) {
+                            android.util.Log.d("PhotoImportViewModel", "Photo copied to: $copiedPath")
+                            
                             // Get image dimensions
                             val (width, height) = fileManager.getImageDimensions(copiedPath)
                             
@@ -61,31 +66,46 @@ class PhotoImportViewModel(
                             )
                             
                             // Save to database
-                            photoDao.insertPhoto(photo)
+                            val photoId = photoDao.insertPhoto(photo)
+                            android.util.Log.d("PhotoImportViewModel", "Photo saved to database with ID: $photoId")
                             
                             // Delete from gallery (this is what the user requested)
-                            fileManager.deletePhotoFromGallery(galleryPhoto.uri)
+                            try {
+                                fileManager.deletePhotoFromGallery(galleryPhoto.uri)
+                                android.util.Log.d("PhotoImportViewModel", "Photo deleted from gallery")
+                            } catch (e: Exception) {
+                                android.util.Log.w("PhotoImportViewModel", "Failed to delete from gallery: ${e.message}")
+                                // Don't fail the import if gallery deletion fails
+                            }
                             
                             successCount++
+                        } else {
+                            android.util.Log.e("PhotoImportViewModel", "Failed to copy photo: ${galleryPhoto.displayName}")
                         }
                         
                         // Update progress
                         _importProgress.value = ((index + 1) * 100) / totalCount
                         
                     } catch (e: Exception) {
+                        android.util.Log.e("PhotoImportViewModel", "Error importing photo ${galleryPhoto.displayName}: ${e.message}")
                         // Continue with next photo if one fails
                         continue
                     }
                 }
+                
+                android.util.Log.d("PhotoImportViewModel", "Import completed. Success count: $successCount")
                 
                 // Update album photo count and cover
                 albumDao.updatePhotoCount(albumId)
                 val firstPhoto = photoDao.getFirstPhotoInAlbum(albumId)
                 albumDao.updateCoverPhoto(albumId, firstPhoto?.filePath)
                 
+                android.util.Log.d("PhotoImportViewModel", "Album metadata updated")
+                
                 _importComplete.value = Pair(successCount > 0, successCount)
                 
             } catch (e: Exception) {
+                android.util.Log.e("PhotoImportViewModel", "Import failed with exception: ${e.message}", e)
                 _error.value = "Import failed: ${e.message}"
                 _importComplete.value = Pair(false, 0)
             }

@@ -55,11 +55,19 @@ class AlbumViewViewModel(
     fun refreshPhotos() {
         viewModelScope.launch {
             try {
+                android.util.Log.d("AlbumViewViewModel", "Refreshing photos for album $albumId")
+                
                 // Update album photo count and cover
                 albumDao.updatePhotoCount(albumId)
                 val firstPhoto = photoDao.getFirstPhotoInAlbum(albumId)
                 albumDao.updateCoverPhoto(albumId, firstPhoto?.filePath)
+                
+                // Check current photo count
+                val currentPhotos = photoDao.getPhotosByAlbumSync(albumId)
+                android.util.Log.d("AlbumViewViewModel", "Album now has ${currentPhotos.size} photos")
+                
             } catch (e: Exception) {
+                android.util.Log.e("AlbumViewViewModel", "Failed to refresh photos: ${e.message}")
                 _error.value = "Failed to refresh photos: ${e.message}"
             }
         }
