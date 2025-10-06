@@ -4,13 +4,13 @@
 
     <item
         android:id="@+id/action_bin"
-        android:title="@string/bin"
+        android:title="Bin"
         android:icon="@drawable/ic_delete"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_settings"
-        android:title="@string/settings"
+        android:title="Settings"
         android:icon="@drawable/ic_info"
         app:showAsAction="never" />
 

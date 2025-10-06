@@ -277,6 +277,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
         android.util.Log.d("MainActivity", "Menu created with ${menu?.size()} items")
+        
+        // Debug: Log each menu item
+        for (i in 0 until (menu?.size() ?: 0)) {
+            val item = menu?.getItem(i)
+            android.util.Log.d("MainActivity", "Menu item $i: ${item?.title} (ID: ${item?.itemId})")
+        }
+        
         return true
     }
     
