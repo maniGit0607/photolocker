@@ -31,11 +31,11 @@
         <!-- Selection Check -->
         <ImageView
             android:id="@+id/ivSelection"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:layout_margin="8dp"
             android:layout_gravity="top|end"
-            android:src="@drawable/ic_check_circle"
+            android:src="@drawable/selection_indicator"
             android:visibility="gone"
             android:contentDescription="Selected" />
 

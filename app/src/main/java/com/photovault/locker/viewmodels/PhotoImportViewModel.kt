@@ -35,12 +35,22 @@ class PhotoImportViewModel(
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> = _error
     
+    // Track imported photos for gallery deletion
+    private val importedGalleryPhotos = mutableListOf<GalleryPhoto>()
+    
+    // LiveData to trigger gallery deletion confirmation dialog
+    private val _showGalleryDeletionDialog = MutableLiveData<Int>()
+    val showGalleryDeletionDialog: LiveData<Int> = _showGalleryDeletionDialog
+    
     fun importPhotos(galleryPhotos: List<GalleryPhoto>) {
         viewModelScope.launch {
             try {
                 android.util.Log.d("PhotoImportViewModel", "Starting import of ${galleryPhotos.size} photos to album $albumId")
                 var successCount = 0
                 val totalCount = galleryPhotos.size
+                
+                // Clear previous imported photos
+                importedGalleryPhotos.clear()
                 
                 for ((index, galleryPhoto) in galleryPhotos.withIndex()) {
                     try {
@@ -77,14 +87,8 @@ class PhotoImportViewModel(
                             val savedPhoto = photoDao.getPhotoById(photoId)
                             android.util.Log.d("PhotoImportViewModel", "Verified photo in database: ${savedPhoto != null}")
                             
-                            // Delete from gallery (this is what the user requested)
-                            /*try {
-                                fileManager.deletePhotoFromGallery(galleryPhoto.uri)
-                                android.util.Log.d("PhotoImportViewModel", "Photo deleted from gallery")
-                            } catch (e: Exception) {
-                                android.util.Log.w("PhotoImportViewModel", "Failed to delete from gallery: ${e.message}")
-                                // Don't fail the import if gallery deletion fails
-                            }*/
+                            // Track this photo for potential gallery deletion
+                            importedGalleryPhotos.add(galleryPhoto)
                             
                             successCount++
                         } else {
@@ -116,10 +120,37 @@ class PhotoImportViewModel(
                 
                 _importComplete.value = Pair(successCount > 0, successCount)
                 
+                // Show gallery deletion dialog if photos were imported
+                if (successCount > 0) {
+                    _showGalleryDeletionDialog.value = successCount
+                }
+                
             } catch (e: Exception) {
                 android.util.Log.e("PhotoImportViewModel", "Import failed with exception: ${e.message}", e)
                 _error.value = "Import failed: ${e.message}"
                 _importComplete.value = Pair(false, 0)
+            }
+        }
+    }
+    
+    fun deleteImportedPhotosFromGallery() {
+        viewModelScope.launch {
+            try {
+                var deletedCount = 0
+                for (galleryPhoto in importedGalleryPhotos) {
+                    try {
+                        if (fileManager.deletePhotoFromGallery(galleryPhoto.uri)) {
+                            deletedCount++
+                            android.util.Log.d("PhotoImportViewModel", "Deleted photo from gallery: ${galleryPhoto.displayName}")
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.w("PhotoImportViewModel", "Failed to delete from gallery: ${e.message}")
+                    }
+                }
+                android.util.Log.d("PhotoImportViewModel", "Deleted $deletedCount photos from gallery")
+            } catch (e: Exception) {
+                android.util.Log.e("PhotoImportViewModel", "Error deleting photos from gallery: ${e.message}")
+                _error.value = "Failed to delete photos from gallery: ${e.message}"
             }
         }
     }

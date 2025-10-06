@@ -116,10 +116,18 @@ class AuthenticationActivity : AppCompatActivity() {
     private fun showError(message: String) {
         binding.tvError.text = message
         binding.tvError.visibility = View.VISIBLE
+        
+        // Make lock symbol red on wrong password
+        if (message == getString(R.string.wrong_password)) {
+            binding.ivLock.setColorFilter(getColor(R.color.error_color))
+        }
     }
     
     private fun clearError() {
         binding.tvError.visibility = View.GONE
+        
+        // Reset lock symbol to white
+        binding.ivLock.setColorFilter(getColor(R.color.white))
     }
     
     private fun navigateToMainActivity() {

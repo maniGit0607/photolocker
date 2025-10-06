@@ -158,6 +158,11 @@ class PhotoImportActivity : AppCompatActivity() {
                 Toast.makeText(this, error, Toast.LENGTH_LONG).show()
             }
         }
+        
+        // Observe gallery deletion dialog trigger
+        viewModel.showGalleryDeletionDialog.observe(this) { count ->
+            showGalleryDeletionConfirmationDialog(count)
+        }
     }
     
     private fun loadGalleryPhotos() {
@@ -276,6 +281,27 @@ class PhotoImportActivity : AppCompatActivity() {
             .setNegativeButton("Cancel") { _, _ ->
                 finish()
             }
+            .show()
+    }
+    
+    private fun showGalleryDeletionConfirmationDialog(count: Int) {
+        val message = if (count == 1) {
+            "Do you want to delete 1 imported photo from gallery?"
+        } else {
+            "Do you want to delete $count imported photos from gallery?"
+        }
+        
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Delete from Gallery")
+            .setMessage(message)
+            .setPositiveButton("Delete") { _, _ ->
+                viewModel.deleteImportedPhotosFromGallery()
+                Toast.makeText(this, "Photos deleted from gallery", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Keep in Gallery") { _, _ ->
+                Toast.makeText(this, "Photos kept in gallery", Toast.LENGTH_SHORT).show()
+            }
+            .setCancelable(false)
             .show()
     }
 }

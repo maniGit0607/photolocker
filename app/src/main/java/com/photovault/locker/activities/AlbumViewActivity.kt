@@ -71,15 +71,19 @@ class AlbumViewActivity : AppCompatActivity() {
     }
     
     private fun setupToolbar() {
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.apply {
-            title = albumName
-            setDisplayHomeAsUpEnabled(true)
-        }
+        // Set up custom toolbar
+        binding.tvAlbumTitle.text = albumName
         
-        binding.toolbar.setNavigationOnClickListener {
+        binding.ivBack.setOnClickListener {
             onBackPressed()
         }
+        
+        binding.ivMenu.setOnClickListener {
+            openOptionsMenu()
+        }
+        
+        // Load cover photo
+        loadCoverPhoto()
     }
     
     private fun setupViewModel() {
@@ -101,7 +105,12 @@ class AlbumViewActivity : AppCompatActivity() {
             onPhotoLongClick = { photo ->
                 // Handle long click for selection mode
                 invalidateOptionsMenu()
-            }
+            },
+            onSetCoverPhoto = { photo ->
+                // Set photo as album cover
+                setPhotoAsCover(photo)
+            },
+            context = this
         )
         
         binding.rvPhotos.apply {
@@ -185,11 +194,11 @@ class AlbumViewActivity : AppCompatActivity() {
         if (photoAdapter.isSelectionMode()) {
             deleteItem?.isVisible = true
             selectAllItem?.isVisible = true
-            supportActionBar?.title = "${photoAdapter.getSelectedCount()} selected"
+            binding.tvAlbumTitle.text = "${photoAdapter.getSelectedCount()} selected"
         } else {
             deleteItem?.isVisible = false
             selectAllItem?.isVisible = false
-            supportActionBar?.title = albumName
+            binding.tvAlbumTitle.text = albumName
         }
         
         return true
@@ -244,6 +253,29 @@ class AlbumViewActivity : AppCompatActivity() {
         super.onResume()
         // Refresh photos when returning from other activities
         viewModel.refreshPhotos()
+    }
+    
+    private fun setPhotoAsCover(photo: Photo) {
+        viewModel.setCoverPhoto(photo)
+        Toast.makeText(this, "Cover photo updated", Toast.LENGTH_SHORT).show()
+        // Reload cover photo after setting
+        loadCoverPhoto()
+    }
+    
+    private fun loadCoverPhoto() {
+        viewModel.getCoverPhoto().observe(this) { coverPhotoPath ->
+            if (coverPhotoPath != null) {
+                binding.ivCoverPhoto.visibility = android.view.View.VISIBLE
+                com.bumptech.glide.Glide.with(this)
+                    .load(coverPhotoPath)
+                    .circleCrop()
+                    .placeholder(R.drawable.ic_photo_album)
+                    .error(R.drawable.ic_photo_album)
+                    .into(binding.ivCoverPhoto)
+            } else {
+                binding.ivCoverPhoto.visibility = android.view.View.GONE
+            }
+        }
     }
 }
 

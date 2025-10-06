@@ -14,7 +14,9 @@ import java.io.File
 
 class PhotoAdapter(
     private val onPhotoClick: (Photo, Int) -> Unit,
-    private val onPhotoLongClick: (Photo) -> Unit
+    private val onPhotoLongClick: (Photo) -> Unit,
+    private val onSetCoverPhoto: (Photo) -> Unit,
+    private val context: android.content.Context
 ) : ListAdapter<Photo, PhotoAdapter.PhotoViewHolder>(PhotoDiffCallback()) {
 
     override fun submitList(list: List<Photo>?, commitCallback: Runnable?) {
@@ -106,6 +108,8 @@ class PhotoAdapter(
                     if (selectionMode) {
                         toggleSelection(photo.id)
                         notifyItemChanged(position)
+                        // Notify the activity to update the menu
+                        onPhotoLongClick(photo)
                     } else {
                         onPhotoClick(photo, position)
                     }
@@ -113,10 +117,8 @@ class PhotoAdapter(
                 
                 root.setOnLongClickListener {
                     if (!selectionMode) {
-                        enableSelectionMode()
-                        toggleSelection(photo.id)
-                        notifyDataSetChanged()
-                        onPhotoLongClick(photo)
+                        // Show context menu for setting cover photo
+                        showContextMenu(photo)
                     }
                     true
                 }
@@ -157,6 +159,25 @@ class PhotoAdapter(
 
     fun getSelectedCount(): Int {
         return selectedPhotos.size
+    }
+    
+    private fun showContextMenu(photo: Photo) {
+        val options = arrayOf("Set as Cover Photo", "Select for Deletion")
+        
+        androidx.appcompat.app.AlertDialog.Builder(context)
+            .setTitle("Photo Options")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> onSetCoverPhoto(photo)
+                    1 -> {
+                        enableSelectionMode()
+                        toggleSelection(photo.id)
+                        notifyDataSetChanged()
+                        onPhotoLongClick(photo)
+                    }
+                }
+            }
+            .show()
     }
 
     private class PhotoDiffCallback : DiffUtil.ItemCallback<Photo>() {

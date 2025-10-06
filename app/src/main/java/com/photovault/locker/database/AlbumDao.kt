@@ -33,5 +33,8 @@ interface AlbumDao {
     
     @Query("UPDATE albums SET cover_photo_path = :coverPhotoPath WHERE id = :albumId")
     suspend fun updateCoverPhoto(albumId: Long, coverPhotoPath: String?)
+    
+    @Query("SELECT cover_photo_path FROM albums WHERE id = :albumId")
+    fun getCoverPhoto(albumId: Long): LiveData<String?>
 }
 

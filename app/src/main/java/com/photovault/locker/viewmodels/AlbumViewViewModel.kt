@@ -81,6 +81,22 @@ class AlbumViewViewModel(
         }
     }
     
+    fun setCoverPhoto(photo: Photo) {
+        viewModelScope.launch {
+            try {
+                albumDao.updateCoverPhoto(albumId, photo.filePath)
+                android.util.Log.d("AlbumViewViewModel", "Cover photo updated to: ${photo.filePath}")
+            } catch (e: Exception) {
+                android.util.Log.e("AlbumViewViewModel", "Failed to set cover photo: ${e.message}")
+                _error.value = "Failed to set cover photo: ${e.message}"
+            }
+        }
+    }
+    
+    fun getCoverPhoto(): LiveData<String?> {
+        return albumDao.getCoverPhoto(albumId)
+    }
+    
     class Factory(
         private val application: Application,
         private val albumId: Long
