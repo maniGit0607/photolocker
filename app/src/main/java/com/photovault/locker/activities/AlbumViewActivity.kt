@@ -150,6 +150,12 @@ class AlbumViewActivity : AppCompatActivity() {
                 android.util.Log.d("AlbumViewActivity", "RecyclerView adapter: ${binding.rvPhotos.adapter}")
                 android.util.Log.d("AlbumViewActivity", "RecyclerView item count: ${binding.rvPhotos.adapter?.itemCount}")
                 android.util.Log.d("AlbumViewActivity", "RecyclerView layout manager: ${binding.rvPhotos.layoutManager}")
+                
+                // Debug RecyclerView dimensions
+                binding.rvPhotos.post {
+                    android.util.Log.d("AlbumViewActivity", "RecyclerView dimensions: ${binding.rvPhotos.width}x${binding.rvPhotos.height}")
+                    android.util.Log.d("AlbumViewActivity", "RecyclerView child count: ${binding.rvPhotos.childCount}")
+                }
             }
         }
 

@@ -77,6 +77,15 @@ class PhotoAdapter(
                             isFirstResource: Boolean
                         ): Boolean {
                             android.util.Log.d("PhotoAdapter", "Glide load successful for ${photo.originalName}")
+                            
+                            // Debug UI dimensions
+                            binding.root.post {
+                                android.util.Log.d("PhotoAdapter", "CardView dimensions: ${binding.root.width}x${binding.root.height}")
+                                android.util.Log.d("PhotoAdapter", "ImageView dimensions: ${binding.ivPhoto.width}x${binding.ivPhoto.height}")
+                                android.util.Log.d("PhotoAdapter", "ImageView visibility: ${binding.ivPhoto.visibility}")
+                                android.util.Log.d("PhotoAdapter", "ImageView drawable: ${binding.ivPhoto.drawable}")
+                            }
+                            
                             return false
                         }
                     })
