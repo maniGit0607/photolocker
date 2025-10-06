@@ -16,6 +16,7 @@ class PhotoAdapter(
     private val onPhotoClick: (Photo, Int) -> Unit,
     private val onPhotoLongClick: (Photo) -> Unit,
     private val onSetCoverPhoto: (Photo) -> Unit,
+    private val onSelectionModeChanged: (Boolean) -> Unit,
     private val context: android.content.Context
 ) : ListAdapter<Photo, PhotoAdapter.PhotoViewHolder>(PhotoDiffCallback()) {
 
@@ -141,12 +142,14 @@ class PhotoAdapter(
     fun enableSelectionMode() {
         selectionMode = true
         notifyDataSetChanged()
+        onSelectionModeChanged(true)
     }
 
     fun disableSelectionMode() {
         selectionMode = false
         selectedPhotos.clear()
         notifyDataSetChanged()
+        onSelectionModeChanged(false)
     }
 
     fun getSelectedPhotos(): List<Long> {

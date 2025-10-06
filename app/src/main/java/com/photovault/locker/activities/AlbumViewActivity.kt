@@ -116,6 +116,15 @@ class AlbumViewActivity : AppCompatActivity() {
                 // Set photo as album cover
                 setPhotoAsCover(photo)
             },
+            onSelectionModeChanged = { isSelectionMode ->
+                // Handle selection mode changes
+                if (isSelectionMode) {
+                    showActionButtons()
+                } else {
+                    hideActionButtons()
+                }
+                invalidateOptionsMenu()
+            },
             context = this
         )
         
@@ -215,12 +224,10 @@ class AlbumViewActivity : AppCompatActivity() {
             deleteItem?.isVisible = false  // Hide menu delete, use action buttons instead
             selectAllItem?.isVisible = true
             tvAlbumTitle.text = "${photoAdapter.getSelectedCount()} selected"
-            showActionButtons()
         } else {
             deleteItem?.isVisible = false
             selectAllItem?.isVisible = false
             tvAlbumTitle.text = albumName
-            hideActionButtons()
         }
         
         return true
@@ -307,8 +314,7 @@ class AlbumViewActivity : AppCompatActivity() {
         if (selectedPhotos.isNotEmpty()) {
             viewModel.movePhotosToBin(selectedPhotos)
             photoAdapter.disableSelectionMode()
-            hideActionButtons()
-            invalidateOptionsMenu()
+            // Action buttons will be hidden automatically by the callback
             Toast.makeText(this, "Photos moved to bin", Toast.LENGTH_SHORT).show()
         }
     }
