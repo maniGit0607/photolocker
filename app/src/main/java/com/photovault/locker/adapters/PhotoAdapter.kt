@@ -17,6 +17,11 @@ class PhotoAdapter(
     private val onPhotoLongClick: (Photo) -> Unit
 ) : ListAdapter<Photo, PhotoAdapter.PhotoViewHolder>(PhotoDiffCallback()) {
 
+    override fun submitList(list: List<Photo>?, commitCallback: Runnable?) {
+        android.util.Log.d("PhotoAdapter", "submitList called with ${list?.size ?: 0} items")
+        super.submitList(list, commitCallback)
+    }
+
     private var selectionMode = false
     private val selectedPhotos = mutableSetOf<Long>()
 
@@ -26,6 +31,8 @@ class PhotoAdapter(
     }
 
     override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
+        android.util.Log.d("PhotoAdapter", "onBindViewHolder called for position $position")
+        android.util.Log.d("PhotoAdapter", "Total items in adapter: ${itemCount}")
         holder.bind(getItem(position), position)
     }
 

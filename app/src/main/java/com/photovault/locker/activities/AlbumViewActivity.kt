@@ -144,6 +144,12 @@ class AlbumViewActivity : AppCompatActivity() {
                 binding.rvPhotos.visibility = View.VISIBLE
                 binding.llEmptyState.visibility = View.GONE
                 android.util.Log.d("AlbumViewActivity", "Showing photos in RecyclerView")
+                
+                // Debug RecyclerView state
+                android.util.Log.d("AlbumViewActivity", "RecyclerView visibility: ${binding.rvPhotos.visibility}")
+                android.util.Log.d("AlbumViewActivity", "RecyclerView adapter: ${binding.rvPhotos.adapter}")
+                android.util.Log.d("AlbumViewActivity", "RecyclerView item count: ${binding.rvPhotos.adapter?.itemCount}")
+                android.util.Log.d("AlbumViewActivity", "RecyclerView layout manager: ${binding.rvPhotos.layoutManager}")
             }
         }
 
