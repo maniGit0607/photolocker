@@ -72,13 +72,18 @@ class AlbumViewActivity : AppCompatActivity() {
     
     private fun setupToolbar() {
         // Set up custom toolbar
-        binding.tvAlbumTitle.text = albumName
+        val tvAlbumTitle = findViewById<android.widget.TextView>(R.id.tvAlbumTitle)
+        val ivBack = findViewById<android.widget.ImageView>(R.id.ivBack)
+        val ivMenu = findViewById<android.widget.ImageView>(R.id.ivMenu)
+        val ivCoverPhoto = findViewById<android.widget.ImageView>(R.id.ivCoverPhoto)
         
-        binding.ivBack.setOnClickListener {
+        tvAlbumTitle.text = albumName
+        
+        ivBack.setOnClickListener {
             onBackPressed()
         }
         
-        binding.ivMenu.setOnClickListener {
+        ivMenu.setOnClickListener {
             openOptionsMenu()
         }
         
@@ -190,15 +195,16 @@ class AlbumViewActivity : AppCompatActivity() {
         // Show/hide menu items based on selection mode
         val deleteItem = menu?.findItem(R.id.action_delete_photos)
         val selectAllItem = menu?.findItem(R.id.action_select_all)
+        val tvAlbumTitle = findViewById<android.widget.TextView>(R.id.tvAlbumTitle)
         
         if (photoAdapter.isSelectionMode()) {
             deleteItem?.isVisible = true
             selectAllItem?.isVisible = true
-            binding.tvAlbumTitle.text = "${photoAdapter.getSelectedCount()} selected"
+            tvAlbumTitle.text = "${photoAdapter.getSelectedCount()} selected"
         } else {
             deleteItem?.isVisible = false
             selectAllItem?.isVisible = false
-            binding.tvAlbumTitle.text = albumName
+            tvAlbumTitle.text = albumName
         }
         
         return true
@@ -263,17 +269,19 @@ class AlbumViewActivity : AppCompatActivity() {
     }
     
     private fun loadCoverPhoto() {
+        val ivCoverPhoto = findViewById<android.widget.ImageView>(R.id.ivCoverPhoto)
+        
         viewModel.getCoverPhoto().observe(this) { coverPhotoPath ->
             if (coverPhotoPath != null) {
-                binding.ivCoverPhoto.visibility = android.view.View.VISIBLE
+                ivCoverPhoto.visibility = android.view.View.VISIBLE
                 com.bumptech.glide.Glide.with(this)
                     .load(coverPhotoPath)
                     .circleCrop()
                     .placeholder(R.drawable.ic_photo_album)
                     .error(R.drawable.ic_photo_album)
-                    .into(binding.ivCoverPhoto)
+                    .into(ivCoverPhoto)
             } else {
-                binding.ivCoverPhoto.visibility = android.view.View.GONE
+                ivCoverPhoto.visibility = android.view.View.GONE
             }
         }
     }
