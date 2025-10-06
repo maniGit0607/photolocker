@@ -57,6 +57,7 @@ class AlbumViewActivity : AppCompatActivity() {
         setupToolbar()
         setupRecyclerView()
         setupFab()
+        setupActionButtons()
         observeData()
     }
     
@@ -141,6 +142,19 @@ class AlbumViewActivity : AppCompatActivity() {
         }
     }
     
+    private fun setupActionButtons() {
+        val btnDelete = findViewById<com.google.android.material.button.MaterialButton>(R.id.btnDelete)
+        val btnSwap = findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSwap)
+        
+        btnDelete.setOnClickListener {
+            moveSelectedPhotosToBin()
+        }
+        
+        btnSwap.setOnClickListener {
+            showAlbumSelectionDialog()
+        }
+    }
+    
     private fun observeData() {
         viewModel.photos.observe(this) { photos ->
             android.util.Log.d("AlbumViewActivity", "Photos LiveData updated with ${photos.size} photos")
@@ -198,13 +212,15 @@ class AlbumViewActivity : AppCompatActivity() {
         val tvAlbumTitle = findViewById<android.widget.TextView>(R.id.tvAlbumTitle)
         
         if (photoAdapter.isSelectionMode()) {
-            deleteItem?.isVisible = true
+            deleteItem?.isVisible = false  // Hide menu delete, use action buttons instead
             selectAllItem?.isVisible = true
             tvAlbumTitle.text = "${photoAdapter.getSelectedCount()} selected"
+            showActionButtons()
         } else {
             deleteItem?.isVisible = false
             selectAllItem?.isVisible = false
             tvAlbumTitle.text = albumName
+            hideActionButtons()
         }
         
         return true
@@ -284,6 +300,35 @@ class AlbumViewActivity : AppCompatActivity() {
                 ivCoverPhoto.visibility = android.view.View.GONE
             }
         }
+    }
+    
+    private fun moveSelectedPhotosToBin() {
+        val selectedPhotos = photoAdapter.getSelectedPhotos()
+        if (selectedPhotos.isNotEmpty()) {
+            viewModel.movePhotosToBin(selectedPhotos)
+            photoAdapter.disableSelectionMode()
+            hideActionButtons()
+            invalidateOptionsMenu()
+            Toast.makeText(this, "Photos moved to bin", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun showAlbumSelectionDialog() {
+        val selectedPhotos = photoAdapter.getSelectedPhotos()
+        if (selectedPhotos.isNotEmpty()) {
+            // TODO: Implement album selection dialog
+            Toast.makeText(this, "Album selection dialog - TODO", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun showActionButtons() {
+        binding.selectionActionButtons.visibility = android.view.View.VISIBLE
+        binding.fabAddPhotos.visibility = android.view.View.GONE
+    }
+    
+    private fun hideActionButtons() {
+        binding.selectionActionButtons.visibility = android.view.View.GONE
+        binding.fabAddPhotos.visibility = android.view.View.VISIBLE
     }
 }
 

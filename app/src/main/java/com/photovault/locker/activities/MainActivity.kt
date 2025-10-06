@@ -139,6 +139,11 @@ class MainActivity : AppCompatActivity() {
         requestPermissionLauncher.launch(PermissionUtils.getRequiredPermissions())
     }
     
+    private fun openBinActivity() {
+        // TODO: Create BinActivity
+        Toast.makeText(this, "Bin activity - TODO", Toast.LENGTH_SHORT).show()
+    }
+    
     private fun showPermissionRationaleDialog() {
         val message = if (hasRequestedPermissions) {
             "Storage permission is required to access and manage photos. Please go to Settings > Apps > PhotoVault Locker > Permissions and enable storage/media access."
@@ -260,6 +265,10 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     requestPermissions()
                 }
+                true
+            }
+            R.id.action_bin -> {
+                openBinActivity()
                 true
             }
             else -> super.onOptionsItemSelected(item)

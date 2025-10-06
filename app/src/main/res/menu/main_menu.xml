@@ -18,6 +18,12 @@
         android:id="@+id/action_permissions"
         android:title="Check Permissions"
         app:showAsAction="never" />
+    
+    <item
+        android:id="@+id/action_bin"
+        android:title="Bin"
+        android:icon="@drawable/ic_delete"
+        app:showAsAction="never" />
 
 </menu>
 

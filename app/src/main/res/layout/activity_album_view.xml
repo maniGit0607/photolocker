@@ -71,6 +71,15 @@
 
     </LinearLayout>
 
+    <!-- Selection Action Buttons -->
+    <include
+        android:id="@+id/selectionActionButtons"
+        layout="@layout/selection_action_buttons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:visibility="gone" />
+
     <!-- Floating Action Button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddPhotos"

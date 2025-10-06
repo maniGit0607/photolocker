@@ -101,6 +101,31 @@ class AlbumViewViewModel(
         return albumDao.getCoverPhoto(albumId)
     }
     
+    fun movePhotosToBin(photoIds: List<Long>) {
+        viewModelScope.launch {
+            try {
+                for (photoId in photoIds) {
+                    val photo = photoDao.getPhotoById(photoId)
+                    photo?.let {
+                        // Move photo to bin (mark as deleted instead of actually deleting)
+                        photoDao.movePhotoToBin(photoId)
+                        android.util.Log.d("AlbumViewViewModel", "Moved photo to bin: ${it.originalName}")
+                    }
+                }
+                
+                // Update album photo count
+                albumDao.updatePhotoCount(albumId)
+                
+                // Refresh the photos list
+                loadPhotos()
+                
+            } catch (e: Exception) {
+                android.util.Log.e("AlbumViewViewModel", "Failed to move photos to bin: ${e.message}")
+                _error.value = "Failed to move photos to bin: ${e.message}"
+            }
+        }
+    }
+    
     class Factory(
         private val application: Application,
         private val albumId: Long
