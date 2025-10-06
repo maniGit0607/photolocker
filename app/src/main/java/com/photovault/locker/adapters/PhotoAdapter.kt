@@ -48,12 +48,15 @@ class PhotoAdapter(
                 val file = java.io.File(photo.filePath)
                 android.util.Log.d("PhotoAdapter", "File exists: ${file.exists()}, size: ${file.length()}")
                 
-                // Load photo
+                // Load photo with better configuration
+                android.util.Log.d("PhotoAdapter", "Starting Glide load for ${photo.originalName}")
+                
                 Glide.with(ivPhoto.context)
-                    .load(File(photo.filePath))
+                    .load(photo.filePath) // Use string path directly, not File object
                     .centerCrop()
                     .placeholder(R.drawable.ic_photo)
                     .error(R.drawable.ic_photo)
+                    .override(300, 300) // Limit image size to prevent main thread blocking
                     .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
                         override fun onLoadFailed(
                             e: com.bumptech.glide.load.engine.GlideException?,
@@ -62,6 +65,7 @@ class PhotoAdapter(
                             isFirstResource: Boolean
                         ): Boolean {
                             android.util.Log.e("PhotoAdapter", "Glide load failed for ${photo.originalName}: ${e?.message}")
+                            android.util.Log.e("PhotoAdapter", "Glide exception: ${e?.logRootCauses}")
                             return false
                         }
                         
