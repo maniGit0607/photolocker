@@ -43,7 +43,7 @@ class AlbumViewActivity : AppCompatActivity() {
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             // Photos were imported successfully, refresh the view
-            viewModel.refreshPhotos()
+            //viewModel.refreshPhotos()
         }
     }
     
@@ -144,23 +144,9 @@ class AlbumViewActivity : AppCompatActivity() {
                 binding.rvPhotos.visibility = View.VISIBLE
                 binding.llEmptyState.visibility = View.GONE
                 android.util.Log.d("AlbumViewActivity", "Showing photos in RecyclerView")
-                
-                // Force RecyclerView to refresh
-                binding.rvPhotos.invalidate()
-                android.util.Log.d("AlbumViewActivity", "RecyclerView invalidated")
             }
         }
-        
-        viewModel.refreshTrigger.observe(this) {
-            android.util.Log.d("AlbumViewActivity", "Refresh trigger received")
-            // Force a manual refresh of the adapter
-            val currentPhotos = viewModel.photos.value
-            if (currentPhotos != null) {
-                android.util.Log.d("AlbumViewActivity", "Manually refreshing adapter with ${currentPhotos.size} photos")
-                photoAdapter.submitList(currentPhotos)
-            }
-        }
-        
+
         viewModel.error.observe(this) { error ->
             if (error.isNotEmpty()) {
                 android.util.Log.e("AlbumViewActivity", "Error: $error")

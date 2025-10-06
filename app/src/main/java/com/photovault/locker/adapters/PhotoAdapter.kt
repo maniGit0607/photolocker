@@ -10,6 +10,7 @@ import com.bumptech.glide.Glide
 import com.photovault.locker.R
 import com.photovault.locker.databinding.ItemPhotoBinding
 import com.photovault.locker.models.Photo
+import java.io.File
 
 class PhotoAdapter(
     private val onPhotoClick: (Photo, Int) -> Unit,
@@ -42,7 +43,7 @@ class PhotoAdapter(
                 
                 // Load photo
                 Glide.with(ivPhoto.context)
-                    .load(photo.filePath)
+                    .load(File(photo.filePath))
                     .centerCrop()
                     .placeholder(R.drawable.ic_photo)
                     .error(R.drawable.ic_photo)
@@ -72,7 +73,7 @@ class PhotoAdapter(
 
                 // Handle selection mode
                 val isSelected = selectedPhotos.contains(photo.id)
-                if (selectionMode) {
+                if (!selectionMode) {
                     selectionOverlay.visibility = if (isSelected) View.VISIBLE else View.GONE
                     ivSelection.visibility = if (isSelected) View.VISIBLE else View.GONE
                 } else {

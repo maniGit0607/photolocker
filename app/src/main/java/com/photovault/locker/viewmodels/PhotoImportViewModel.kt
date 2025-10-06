@@ -78,13 +78,13 @@ class PhotoImportViewModel(
                             android.util.Log.d("PhotoImportViewModel", "Verified photo in database: ${savedPhoto != null}")
                             
                             // Delete from gallery (this is what the user requested)
-                            try {
+                            /*try {
                                 fileManager.deletePhotoFromGallery(galleryPhoto.uri)
                                 android.util.Log.d("PhotoImportViewModel", "Photo deleted from gallery")
                             } catch (e: Exception) {
                                 android.util.Log.w("PhotoImportViewModel", "Failed to delete from gallery: ${e.message}")
                                 // Don't fail the import if gallery deletion fails
-                            }
+                            }*/
                             
                             successCount++
                         } else {
