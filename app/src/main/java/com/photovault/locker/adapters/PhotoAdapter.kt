@@ -95,7 +95,7 @@ class PhotoAdapter(
 
                 // Handle selection mode
                 val isSelected = selectedPhotos.contains(photo.id)
-                if (!selectionMode) {
+                if (selectionMode) {
                     selectionOverlay.visibility = if (isSelected) View.VISIBLE else View.GONE
                     ivSelection.visibility = if (isSelected) View.VISIBLE else View.GONE
                 } else {
