@@ -72,9 +72,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 albumsList.forEach { album ->
                     albumDao.updatePhotoCount(album.id)
                     
-                    // Update cover photo
-                    val firstPhoto = photoDao.getFirstPhotoInAlbum(album.id)
-                    albumDao.updateCoverPhoto(album.id, firstPhoto?.filePath)
+                    // Set cover photo only if no cover exists
+                    if (album.coverPhotoPath == null) {
+                        val firstPhoto = photoDao.getFirstPhotoInAlbum(album.id)
+                        albumDao.updateCoverPhoto(album.id, firstPhoto?.filePath)
+                    }
                 }
             } catch (e: Exception) {
                 _error.value = "Failed to update album information: ${e.message}"

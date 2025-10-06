@@ -36,10 +36,8 @@ class PhotoViewViewModel(
                 // Delete from database
                 photoDao.deletePhoto(photo)
                 
-                // Update album photo count and cover
+                // Update album photo count
                 albumDao.updatePhotoCount(albumId)
-                val firstPhoto = photoDao.getFirstPhotoInAlbum(albumId)
-                albumDao.updateCoverPhoto(albumId, firstPhoto?.filePath)
                 
             } catch (e: Exception) {
                 _error.value = "Failed to delete photo: ${e.message}"

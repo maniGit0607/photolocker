@@ -46,10 +46,8 @@ class AlbumViewViewModel(
                     }
                 }
                 
-                // Update album photo count and cover
+                // Update album photo count
                 albumDao.updatePhotoCount(albumId)
-                val firstPhoto = photoDao.getFirstPhotoInAlbum(albumId)
-                albumDao.updateCoverPhoto(albumId, firstPhoto?.filePath)
 
             } catch (e: Exception) {
                 _error.value = "Failed to delete photos: ${e.message}"
@@ -62,14 +60,16 @@ class AlbumViewViewModel(
             try {
                 android.util.Log.d("AlbumViewViewModel", "Refreshing photos for album $albumId")
                 
-                // Update album photo count and cover
+                // Update album photo count only
                 albumDao.updatePhotoCount(albumId)
-                val firstPhoto = photoDao.getFirstPhotoInAlbum(albumId)
-                albumDao.updateCoverPhoto(albumId, firstPhoto?.filePath)
                 
                 // Reload photos from database and update LiveData
                 val currentPhotos = photoDao.getPhotosByAlbumSync(albumId)
                 android.util.Log.d("AlbumViewViewModel", "Album now has ${currentPhotos.size} photos")
+                
+                // Update the LiveData with the new photos
+                _photos.value = currentPhotos
+                android.util.Log.d("AlbumViewViewModel", "Updated LiveData with ${currentPhotos.size} photos")
                 
                 // Trigger refresh to force UI update
                 _refreshTrigger.value = Unit
