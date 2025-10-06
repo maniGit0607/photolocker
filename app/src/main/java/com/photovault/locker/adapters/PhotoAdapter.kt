@@ -32,12 +32,42 @@ class PhotoAdapter(
         
         fun bind(photo: Photo, position: Int) {
             binding.apply {
+                // Debug: Log the photo details
+                android.util.Log.d("PhotoAdapter", "Binding photo at position $position: ${photo.originalName}")
+                android.util.Log.d("PhotoAdapter", "Photo file path: ${photo.filePath}")
+                
+                // Check if file exists
+                val file = java.io.File(photo.filePath)
+                android.util.Log.d("PhotoAdapter", "File exists: ${file.exists()}, size: ${file.length()}")
+                
                 // Load photo
                 Glide.with(ivPhoto.context)
                     .load(photo.filePath)
                     .centerCrop()
                     .placeholder(R.drawable.ic_photo)
                     .error(R.drawable.ic_photo)
+                    .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
+                        override fun onLoadFailed(
+                            e: com.bumptech.glide.load.engine.GlideException?,
+                            model: Any?,
+                            target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
+                            isFirstResource: Boolean
+                        ): Boolean {
+                            android.util.Log.e("PhotoAdapter", "Glide load failed for ${photo.originalName}: ${e?.message}")
+                            return false
+                        }
+                        
+                        override fun onResourceReady(
+                            resource: android.graphics.drawable.Drawable?,
+                            model: Any?,
+                            target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
+                            dataSource: com.bumptech.glide.load.DataSource?,
+                            isFirstResource: Boolean
+                        ): Boolean {
+                            android.util.Log.d("PhotoAdapter", "Glide load successful for ${photo.originalName}")
+                            return false
+                        }
+                    })
                     .into(ivPhoto)
 
                 // Handle selection mode
