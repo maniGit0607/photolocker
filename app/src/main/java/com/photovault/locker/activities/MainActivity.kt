@@ -144,6 +144,39 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "Bin activity - TODO", Toast.LENGTH_SHORT).show()
     }
     
+    private fun openSettings() {
+        // TODO: Create SettingsActivity or show settings dialog
+        showSettingsDialog()
+    }
+    
+    private fun showSettingsDialog() {
+        val options = arrayOf("Change Password", "About", "Check Permissions")
+        
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Settings")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> {
+                        // Change Password
+                        Toast.makeText(this, "Change password functionality", Toast.LENGTH_SHORT).show()
+                    }
+                    1 -> {
+                        // About
+                        Toast.makeText(this, "PhotoVault Locker v1.0", Toast.LENGTH_SHORT).show()
+                    }
+                    2 -> {
+                        // Check Permissions
+                        if (PermissionUtils.hasStoragePermissions(this)) {
+                            Toast.makeText(this, "Storage permissions already granted", Toast.LENGTH_SHORT).show()
+                        } else {
+                            requestPermissions()
+                        }
+                    }
+                }
+            }
+            .show()
+    }
+    
     private fun showPermissionRationaleDialog() {
         val message = if (hasRequestedPermissions) {
             "Storage permission is required to access and manage photos. Please go to Settings > Apps > PhotoVault Locker > Permissions and enable storage/media access."
@@ -243,32 +276,19 @@ class MainActivity : AppCompatActivity() {
     
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
+        android.util.Log.d("MainActivity", "Menu created with ${menu?.size()} items")
         return true
     }
     
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        android.util.Log.d("MainActivity", "Menu item selected: ${item.title} (ID: ${item.itemId})")
         return when (item.itemId) {
-            R.id.action_change_password -> {
-                // TODO: Implement change password functionality
-                Toast.makeText(this, "Change password functionality", Toast.LENGTH_SHORT).show()
-                true
-            }
-            R.id.action_about -> {
-                // TODO: Implement about dialog
-                Toast.makeText(this, "PhotoVault Locker v1.0", Toast.LENGTH_SHORT).show()
-                true
-            }
-            R.id.action_permissions -> {
-                // Force request permissions for testing
-                if (PermissionUtils.hasStoragePermissions(this)) {
-                    Toast.makeText(this, "Storage permissions already granted", Toast.LENGTH_SHORT).show()
-                } else {
-                    requestPermissions()
-                }
-                true
-            }
             R.id.action_bin -> {
                 openBinActivity()
+                true
+            }
+            R.id.action_settings -> {
+                openSettings()
                 true
             }
             else -> super.onOptionsItemSelected(item)

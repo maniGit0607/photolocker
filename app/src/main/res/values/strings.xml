@@ -49,6 +49,8 @@
     <string name="new_password">New Password</string>
     <string name="about">About</string>
     <string name="version">Version</string>
+    <string name="bin">Bin</string>
+    <string name="settings">Settings</string>
     
     <!-- Photo Viewer -->
     <string name="photo_of">%1$d of %2$d</string>

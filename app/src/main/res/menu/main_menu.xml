@@ -3,26 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_change_password"
-        android:title="@string/change_password"
-        android:icon="@drawable/ic_lock"
-        app:showAsAction="never" />
+        android:id="@+id/action_bin"
+        android:title="@string/bin"
+        android:icon="@drawable/ic_delete"
+        app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/action_about"
-        android:title="@string/about"
+        android:id="@+id/action_settings"
+        android:title="@string/settings"
         android:icon="@drawable/ic_info"
-        app:showAsAction="never" />
-    
-    <item
-        android:id="@+id/action_permissions"
-        android:title="Check Permissions"
-        app:showAsAction="never" />
-    
-    <item
-        android:id="@+id/action_bin"
-        android:title="Bin"
-        android:icon="@drawable/ic_delete"
         app:showAsAction="never" />
 
 </menu>
