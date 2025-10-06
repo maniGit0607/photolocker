@@ -145,7 +145,7 @@ class PhotoImportActivity : AppCompatActivity() {
                 
                 // Set result to indicate photos were imported successfully
                 setResult(RESULT_OK)
-                finish()
+                // Don't finish here - let the gallery deletion dialog handle it
             } else {
                 Toast.makeText(this, getString(R.string.import_failed), Toast.LENGTH_LONG).show()
                 binding.btnImport.isEnabled = true
@@ -161,6 +161,7 @@ class PhotoImportActivity : AppCompatActivity() {
         
         // Observe gallery deletion dialog trigger
         viewModel.showGalleryDeletionDialog.observe(this) { count ->
+            android.util.Log.d("PhotoImportActivity", "Gallery deletion dialog triggered with count: $count")
             showGalleryDeletionConfirmationDialog(count)
         }
     }
@@ -285,6 +286,8 @@ class PhotoImportActivity : AppCompatActivity() {
     }
     
     private fun showGalleryDeletionConfirmationDialog(count: Int) {
+        android.util.Log.d("PhotoImportActivity", "showGalleryDeletionConfirmationDialog called with count: $count")
+        
         val message = if (count == 1) {
             "Do you want to delete 1 imported photo from gallery?"
         } else {
