@@ -119,7 +119,7 @@ class AuthenticationActivity : AppCompatActivity() {
         
         // Make lock symbol red on wrong password
         if (message == getString(R.string.wrong_password)) {
-            binding.ivLock.setColorFilter(getColor(R.color.error_color))
+            binding.ivLock.setColorFilter(android.graphics.Color.RED)
         }
     }
     
@@ -127,7 +127,7 @@ class AuthenticationActivity : AppCompatActivity() {
         binding.tvError.visibility = View.GONE
         
         // Reset lock symbol to white
-        binding.ivLock.setColorFilter(getColor(R.color.white))
+        binding.ivLock.setColorFilter(android.graphics.Color.WHITE)
     }
     
     private fun navigateToMainActivity() {

@@ -109,8 +109,14 @@ class PhotoImportViewModel(
                 
                 // Update album photo count and cover
                 albumDao.updatePhotoCount(albumId)
-                val firstPhoto = photoDao.getFirstPhotoInAlbum(albumId)
-                albumDao.updateCoverPhoto(albumId, firstPhoto?.filePath)
+                
+                // Set first photo as cover photo if no cover is set yet
+                val currentAlbum = albumDao.getAlbumById(albumId)
+                if (currentAlbum?.coverPhotoPath == null) {
+                    val firstPhoto = photoDao.getFirstPhotoInAlbum(albumId)
+                    albumDao.updateCoverPhoto(albumId, firstPhoto?.filePath)
+                    android.util.Log.d("PhotoImportViewModel", "Set first photo as cover: ${firstPhoto?.filePath}")
+                }
                 
                 // Final verification - check total photos in album
                 val finalPhotoCount = photoDao.getPhotoCountByAlbum(albumId)

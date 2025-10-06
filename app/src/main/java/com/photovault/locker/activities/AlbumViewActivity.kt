@@ -53,8 +53,8 @@ class AlbumViewActivity : AppCompatActivity() {
         setContentView(binding.root)
         
         getIntentExtras()
-        setupToolbar()
         setupViewModel()
+        setupToolbar()
         setupRecyclerView()
         setupFab()
         observeData()

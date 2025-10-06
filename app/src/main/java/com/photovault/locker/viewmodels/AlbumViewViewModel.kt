@@ -86,6 +86,10 @@ class AlbumViewViewModel(
             try {
                 albumDao.updateCoverPhoto(albumId, photo.filePath)
                 android.util.Log.d("AlbumViewViewModel", "Cover photo updated to: ${photo.filePath}")
+                
+                // Force refresh the cover photo LiveData
+                val currentCoverPhoto = albumDao.getCoverPhoto(albumId)
+                // The LiveData will automatically update
             } catch (e: Exception) {
                 android.util.Log.e("AlbumViewViewModel", "Failed to set cover photo: ${e.message}")
                 _error.value = "Failed to set cover photo: ${e.message}"
