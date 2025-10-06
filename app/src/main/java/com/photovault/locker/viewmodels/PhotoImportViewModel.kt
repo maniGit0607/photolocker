@@ -12,6 +12,7 @@ import com.photovault.locker.models.GalleryPhoto
 import com.photovault.locker.models.Photo
 import com.photovault.locker.utils.FileManager
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.Date
 
 class PhotoImportViewModel(
@@ -45,25 +46,28 @@ class PhotoImportViewModel(
                     try {
                         android.util.Log.d("PhotoImportViewModel", "Importing photo ${index + 1}/$totalCount: ${galleryPhoto.displayName}")
                         
-                        // Copy photo to app storage
-                        val copiedPath = fileManager.copyPhotoToAppStorage(galleryPhoto.uri, albumName)
-                        
-                        if (copiedPath != null) {
-                            android.util.Log.d("PhotoImportViewModel", "Photo copied to: $copiedPath")
+                            // Copy photo to app storage
+                            val copiedPath = fileManager.copyPhotoToAppStorage(galleryPhoto.uri, albumName)
                             
-                            // Get image dimensions
-                            val (width, height) = fileManager.getImageDimensions(copiedPath)
-                            
-                            // Create photo record
-                            val photo = Photo(
-                                albumId = albumId,
-                                filePath = copiedPath,
-                                originalName = galleryPhoto.displayName,
-                                importedDate = Date(),
-                                fileSize = galleryPhoto.size,
-                                width = width,
-                                height = height
-                            )
+                            if (copiedPath != null) {
+                                android.util.Log.d("PhotoImportViewModel", "Photo copied to: $copiedPath")
+                                
+                                // Get image dimensions
+                                val (width, height) = fileManager.getImageDimensions(copiedPath)
+                                
+                                // Extract the actual filename from the copied path
+                                val actualFileName = File(copiedPath).name
+                                
+                                // Create photo record
+                                val photo = Photo(
+                                    albumId = albumId,
+                                    filePath = copiedPath,
+                                    originalName = actualFileName, // Use the actual filename, not the gallery name
+                                    importedDate = Date(),
+                                    fileSize = galleryPhoto.size,
+                                    width = width,
+                                    height = height
+                                )
                             
                             // Save to database
                             val photoId = photoDao.insertPhoto(photo)
