@@ -126,14 +126,6 @@ class PhotoImportViewModel(
                 
                 _importComplete.value = Pair(successCount > 0, successCount)
                 
-                // Show gallery deletion dialog if photos were imported
-                if (successCount > 0) {
-                    android.util.Log.d("PhotoImportViewModel", "Triggering gallery deletion dialog for $successCount photos")
-                    _showGalleryDeletionDialog.value = successCount
-                } else {
-                    android.util.Log.d("PhotoImportViewModel", "No photos imported, not showing gallery deletion dialog")
-                }
-                
             } catch (e: Exception) {
                 android.util.Log.e("PhotoImportViewModel", "Import failed with exception: ${e.message}", e)
                 _error.value = "Import failed: ${e.message}"

@@ -143,9 +143,12 @@ class PhotoImportActivity : AppCompatActivity() {
                 val message = getString(R.string.photos_imported, count)
                 Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
                 
-                // Set result to indicate photos were imported successfully
-                setResult(RESULT_OK)
-                // Don't finish here - let the gallery deletion dialog handle it
+                // Set result to indicate photos were imported successfully with count
+                val resultIntent = Intent().apply {
+                    putExtra("imported_count", count)
+                }
+                setResult(RESULT_OK, resultIntent)
+                finish()
             } else {
                 Toast.makeText(this, getString(R.string.import_failed), Toast.LENGTH_LONG).show()
                 binding.btnImport.isEnabled = true
@@ -159,11 +162,6 @@ class PhotoImportActivity : AppCompatActivity() {
             }
         }
         
-        // Observe gallery deletion dialog trigger
-        viewModel.showGalleryDeletionDialog.observe(this) { count ->
-            android.util.Log.d("PhotoImportActivity", "Gallery deletion dialog triggered with count: $count")
-            showGalleryDeletionConfirmationDialog(count)
-        }
     }
     
     private fun loadGalleryPhotos() {
@@ -285,27 +283,5 @@ class PhotoImportActivity : AppCompatActivity() {
             .show()
     }
     
-    private fun showGalleryDeletionConfirmationDialog(count: Int) {
-        android.util.Log.d("PhotoImportActivity", "showGalleryDeletionConfirmationDialog called with count: $count")
-        
-        val message = if (count == 1) {
-            "Do you want to delete 1 imported photo from gallery?"
-        } else {
-            "Do you want to delete $count imported photos from gallery?"
-        }
-        
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Delete from Gallery")
-            .setMessage(message)
-            .setPositiveButton("Delete") { _, _ ->
-                viewModel.deleteImportedPhotosFromGallery()
-                Toast.makeText(this, "Photos deleted from gallery", Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton("Keep in Gallery") { _, _ ->
-                Toast.makeText(this, "Photos kept in gallery", Toast.LENGTH_SHORT).show()
-            }
-            .setCancelable(false)
-            .show()
-    }
 }
 

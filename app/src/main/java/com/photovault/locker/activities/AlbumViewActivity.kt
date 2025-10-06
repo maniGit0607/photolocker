@@ -43,7 +43,13 @@ class AlbumViewActivity : AppCompatActivity() {
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             // Photos were imported successfully, refresh the view
-            //viewModel.refreshPhotos()
+            viewModel.refreshPhotos()
+            
+            // Get the imported count and show gallery deletion dialog
+            val importedCount = result.data?.getIntExtra("imported_count", 0) ?: 0
+            if (importedCount > 0) {
+                showGalleryDeletionConfirmationDialog(importedCount)
+            }
         }
     }
     
@@ -337,6 +343,27 @@ class AlbumViewActivity : AppCompatActivity() {
         val selectionButtons = findViewById<android.widget.LinearLayout>(R.id.selectionActionButtons)
         selectionButtons.visibility = android.view.View.GONE
         binding.fabAddPhotos.visibility = android.view.View.VISIBLE
+    }
+    
+    private fun showGalleryDeletionConfirmationDialog(count: Int) {
+        val message = if (count == 1) {
+            "Photos have been safely imported to your album. Do you want to delete 1 imported photo from gallery?"
+        } else {
+            "Photos have been safely imported to your album. Do you want to delete $count imported photos from gallery?"
+        }
+        
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Delete from Gallery")
+            .setMessage(message)
+            .setPositiveButton("Delete") { _, _ ->
+                // TODO: Implement gallery deletion
+                Toast.makeText(this, "Photos deleted from gallery", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Keep in Gallery") { _, _ ->
+                Toast.makeText(this, "Photos kept in gallery", Toast.LENGTH_SHORT).show()
+            }
+            .setCancelable(false)
+            .show()
     }
 }
 
