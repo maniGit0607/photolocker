@@ -66,11 +66,7 @@ class AlbumViewViewModel(
                 // Reload photos from database and update LiveData
                 val currentPhotos = photoDao.getPhotosByAlbumSync(albumId)
                 android.util.Log.d("AlbumViewViewModel", "Album now has ${currentPhotos.size} photos")
-                
-                // Update the LiveData with the new photos
-                _photos.value = currentPhotos
-                android.util.Log.d("AlbumViewViewModel", "Updated LiveData with ${currentPhotos.size} photos")
-                
+
                 // Trigger refresh to force UI update
                 _refreshTrigger.value = Unit
                 
@@ -86,10 +82,6 @@ class AlbumViewViewModel(
             try {
                 albumDao.updateCoverPhoto(albumId, photo.filePath)
                 android.util.Log.d("AlbumViewViewModel", "Cover photo updated to: ${photo.filePath}")
-                
-                // Force refresh the cover photo LiveData
-                val currentCoverPhoto = albumDao.getCoverPhoto(albumId)
-                // The LiveData will automatically update
             } catch (e: Exception) {
                 android.util.Log.e("AlbumViewViewModel", "Failed to set cover photo: ${e.message}")
                 _error.value = "Failed to set cover photo: ${e.message}"
@@ -117,7 +109,7 @@ class AlbumViewViewModel(
                 albumDao.updatePhotoCount(albumId)
                 
                 // Refresh the photos list
-                loadPhotos()
+                refreshPhotos()
                 
             } catch (e: Exception) {
                 android.util.Log.e("AlbumViewViewModel", "Failed to move photos to bin: ${e.message}")

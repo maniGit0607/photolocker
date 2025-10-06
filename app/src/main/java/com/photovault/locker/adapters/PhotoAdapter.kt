@@ -68,7 +68,6 @@ class PhotoAdapter(
                             isFirstResource: Boolean
                         ): Boolean {
                             android.util.Log.e("PhotoAdapter", "Glide load failed for ${photo.originalName}: ${e?.message}")
-                            android.util.Log.e("PhotoAdapter", "Glide exception: ${e?.logRootCauses}")
                             return false
                         }
                         

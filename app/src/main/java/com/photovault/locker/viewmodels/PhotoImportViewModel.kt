@@ -134,28 +134,6 @@ class PhotoImportViewModel(
         }
     }
     
-    fun deleteImportedPhotosFromGallery() {
-        viewModelScope.launch {
-            try {
-                var deletedCount = 0
-                for (galleryPhoto in importedGalleryPhotos) {
-                    try {
-                        if (fileManager.deletePhotoFromGallery(galleryPhoto.uri)) {
-                            deletedCount++
-                            android.util.Log.d("PhotoImportViewModel", "Deleted photo from gallery: ${galleryPhoto.displayName}")
-                        }
-                    } catch (e: Exception) {
-                        android.util.Log.w("PhotoImportViewModel", "Failed to delete from gallery: ${e.message}")
-                    }
-                }
-                android.util.Log.d("PhotoImportViewModel", "Deleted $deletedCount photos from gallery")
-            } catch (e: Exception) {
-                android.util.Log.e("PhotoImportViewModel", "Error deleting photos from gallery: ${e.message}")
-                _error.value = "Failed to delete photos from gallery: ${e.message}"
-            }
-        }
-    }
-    
     class Factory(
         private val application: Application,
         private val albumId: Long,
