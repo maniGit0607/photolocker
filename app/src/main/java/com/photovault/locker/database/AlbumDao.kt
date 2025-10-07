@@ -28,7 +28,7 @@ interface AlbumDao {
     @Delete
     suspend fun deleteAlbum(album: Album)
     
-    @Query("UPDATE albums SET photo_count = (SELECT COUNT(*) FROM photos WHERE album_id = :albumId) WHERE id = :albumId")
+    @Query("UPDATE albums SET photo_count = (SELECT COUNT(*) FROM photos WHERE album_id = :albumId and is_deleted = 0) WHERE id = :albumId")
     suspend fun updatePhotoCount(albumId: Long)
     
     @Query("UPDATE albums SET cover_photo_path = :coverPhotoPath WHERE id = :albumId")
