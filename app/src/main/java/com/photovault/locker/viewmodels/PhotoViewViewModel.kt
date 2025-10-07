@@ -27,19 +27,57 @@ class PhotoViewViewModel(
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> = _error
     
+    private suspend fun getCurrentCoverPhotoPath(): String? {
+        return albumDao.getCoverPhotoSync(albumId)
+    }
+    
+    private suspend fun updateCoverPhotoAfterDeletion() {
+        try {
+            // Get the first photo remaining in the album
+            val firstPhoto = photoDao.getFirstPhotoInAlbum(albumId)
+            
+            if (firstPhoto != null) {
+                // Set the first photo as the new cover photo
+                albumDao.updateCoverPhoto(albumId, firstPhoto.filePath)
+                android.util.Log.d("PhotoViewViewModel", "Updated cover photo to: ${firstPhoto.originalName}")
+            } else {
+                // No photos remaining in album, clear cover photo
+                albumDao.updateCoverPhoto(albumId, null)
+                android.util.Log.d("PhotoViewViewModel", "No photos remaining in album, cleared cover photo")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("PhotoViewViewModel", "Failed to update cover photo after deletion: ${e.message}")
+            _error.value = "Failed to update cover photo: ${e.message}"
+        }
+    }
+    
     fun deletePhoto(photo: Photo) {
         viewModelScope.launch {
             try {
+                // Get current cover photo path before deleting
+                val currentCoverPhotoPath = getCurrentCoverPhotoPath()
+                val isCoverPhotoBeingDeleted = currentCoverPhotoPath != null && currentCoverPhotoPath == photo.filePath
+                
+                if (isCoverPhotoBeingDeleted) {
+                    android.util.Log.d("PhotoViewViewModel", "Cover photo is being deleted: ${photo.originalName}")
+                }
+                
                 // Delete file from storage
                 fileManager.deletePhotoFromAppStorage(photo.filePath)
                 
                 // Delete from database
                 photoDao.deletePhoto(photo)
                 
+                // If cover photo was deleted, set new cover photo
+                if (isCoverPhotoBeingDeleted) {
+                    updateCoverPhotoAfterDeletion()
+                }
+                
                 // Update album photo count
                 albumDao.updatePhotoCount(albumId)
                 
             } catch (e: Exception) {
+                android.util.Log.e("PhotoViewViewModel", "Failed to delete photo: ${e.message}")
                 _error.value = "Failed to delete photo: ${e.message}"
             }
         }
