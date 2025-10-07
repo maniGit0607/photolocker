@@ -45,6 +45,20 @@
         android:maxLines="1"
         android:ellipsize="end" />
 
+    <!-- Selection Count -->
+    <TextView
+        android:id="@+id/tvSelectionCount"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="8 selected"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:visibility="gone" />
+
     <!-- Menu Button (for overflow menu) -->
     <ImageView
         android:id="@+id/ivMenu"
@@ -58,3 +72,4 @@
         android:contentDescription="Menu" />
 
 </LinearLayout>
+

@@ -80,11 +80,13 @@ class AlbumViewActivity : AppCompatActivity() {
     private fun setupToolbar() {
         // Set up custom toolbar
         val tvAlbumTitle = findViewById<android.widget.TextView>(R.id.tvAlbumTitle)
+        val tvSelectionCount = findViewById<android.widget.TextView>(R.id.tvSelectionCount)
         val ivBack = findViewById<android.widget.ImageView>(R.id.ivBack)
         val ivMenu = findViewById<android.widget.ImageView>(R.id.ivMenu)
         val ivCoverPhoto = findViewById<android.widget.ImageView>(R.id.ivCoverPhoto)
         
         tvAlbumTitle.text = albumName
+        tvSelectionCount.visibility = android.view.View.GONE
         
         ivBack.setOnClickListener {
             onBackPressed()
@@ -116,6 +118,7 @@ class AlbumViewActivity : AppCompatActivity() {
             },
             onPhotoLongClick = { photo ->
                 // Handle long click for selection mode
+                updateSelectionCount()
                 invalidateOptionsMenu()
             },
             onSetCoverPhoto = { photo ->
@@ -129,6 +132,7 @@ class AlbumViewActivity : AppCompatActivity() {
                 } else {
                     hideActionButtons()
                 }
+                updateSelectionCount()
                 invalidateOptionsMenu()
             },
             context = this
@@ -224,16 +228,13 @@ class AlbumViewActivity : AppCompatActivity() {
         // Show/hide menu items based on selection mode
         val deleteItem = menu?.findItem(R.id.action_delete_photos)
         val selectAllItem = menu?.findItem(R.id.action_select_all)
-        val tvAlbumTitle = findViewById<android.widget.TextView>(R.id.tvAlbumTitle)
         
         if (photoAdapter.isSelectionMode()) {
             deleteItem?.isVisible = false  // Hide menu delete, use action buttons instead
             selectAllItem?.isVisible = true
-            tvAlbumTitle.text = "${photoAdapter.getSelectedCount()} selected"
         } else {
             deleteItem?.isVisible = false
             selectAllItem?.isVisible = false
-            tvAlbumTitle.text = albumName
         }
         
         return true
@@ -268,6 +269,7 @@ class AlbumViewActivity : AppCompatActivity() {
                 val selectedPhotos = photoAdapter.getSelectedPhotos()
                 viewModel.deletePhotos(selectedPhotos)
                 photoAdapter.disableSelectionMode()
+                updateSelectionCount()
                 invalidateOptionsMenu()
                 Toast.makeText(this, "Photos deleted", Toast.LENGTH_SHORT).show()
             }
@@ -278,6 +280,7 @@ class AlbumViewActivity : AppCompatActivity() {
     override fun onBackPressed() {
         if (photoAdapter.isSelectionMode()) {
             photoAdapter.disableSelectionMode()
+            updateSelectionCount()
             invalidateOptionsMenu()
         } else {
             super.onBackPressed()
@@ -320,6 +323,7 @@ class AlbumViewActivity : AppCompatActivity() {
         if (selectedPhotos.isNotEmpty()) {
             viewModel.movePhotosToBin(selectedPhotos)
             photoAdapter.disableSelectionMode()
+            updateSelectionCount()
             // Action buttons will be hidden automatically by the callback
             Toast.makeText(this, "Photos moved to bin", Toast.LENGTH_SHORT).show()
         }
@@ -343,6 +347,21 @@ class AlbumViewActivity : AppCompatActivity() {
         val selectionButtons = findViewById<android.widget.LinearLayout>(R.id.selectionActionButtons)
         selectionButtons.visibility = android.view.View.GONE
         binding.fabAddPhotos.visibility = android.view.View.VISIBLE
+    }
+    
+    private fun updateSelectionCount() {
+        val tvAlbumTitle = findViewById<android.widget.TextView>(R.id.tvAlbumTitle)
+        val tvSelectionCount = findViewById<android.widget.TextView>(R.id.tvSelectionCount)
+        
+        if (photoAdapter.isSelectionMode()) {
+            val selectedCount = photoAdapter.getSelectedCount()
+            tvAlbumTitle.visibility = android.view.View.GONE
+            tvSelectionCount.visibility = android.view.View.VISIBLE
+            tvSelectionCount.text = if (selectedCount == 1) "1 selected" else "$selectedCount selected"
+        } else {
+            tvAlbumTitle.visibility = android.view.View.VISIBLE
+            tvSelectionCount.visibility = android.view.View.GONE
+        }
     }
     
     private fun showGalleryDeletionConfirmationDialog(count: Int) {

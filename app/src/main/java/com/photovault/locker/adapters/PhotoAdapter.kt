@@ -108,7 +108,7 @@ class PhotoAdapter(
                     if (selectionMode) {
                         toggleSelection(photo.id)
                         notifyItemChanged(position)
-                        // Notify the activity to update the menu
+                        // Notify the activity to update the selection count
                         onPhotoLongClick(photo)
                     } else {
                         onPhotoClick(photo, position)
