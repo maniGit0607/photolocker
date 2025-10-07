@@ -31,7 +31,7 @@
     <color name="album_overlay">#80000000</color>
     
     <!-- Photo Selection -->
-    <color name="selection_overlay">#802196F3</color>
+    <color name="selection_overlay">#000000F3</color>
     <color name="selected_border">#FF2196F3</color>
 </resources>
 

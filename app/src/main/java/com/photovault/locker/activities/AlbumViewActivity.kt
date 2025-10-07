@@ -119,7 +119,6 @@ class AlbumViewActivity : AppCompatActivity() {
             onPhotoLongClick = { photo ->
                 // Handle long click for selection mode
                 updateSelectionCount()
-                invalidateOptionsMenu()
             },
             onSetCoverPhoto = { photo ->
                 // Set photo as album cover
@@ -127,13 +126,18 @@ class AlbumViewActivity : AppCompatActivity() {
             },
             onSelectionModeChanged = { isSelectionMode ->
                 // Handle selection mode changes
+                updateSelectionCount()
+                val tvAlbumTitle = findViewById<android.widget.TextView>(R.id.tvAlbumTitle)
+                val tvSelectionCount = findViewById<android.widget.TextView>(R.id.tvSelectionCount)
                 if (isSelectionMode) {
+                    tvAlbumTitle.visibility = android.view.View.GONE
+                    tvSelectionCount.visibility = android.view.View.VISIBLE
                     showActionButtons()
                 } else {
+                    tvAlbumTitle.visibility = android.view.View.VISIBLE
+                    tvSelectionCount.visibility = android.view.View.GONE
                     hideActionButtons()
                 }
-                updateSelectionCount()
-                invalidateOptionsMenu()
             },
             context = this
         )
@@ -221,67 +225,16 @@ class AlbumViewActivity : AppCompatActivity() {
         }
         photoImportLauncher.launch(intent)
     }
-    
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.album_menu, menu)
-        
-        // Show/hide menu items based on selection mode
-        val deleteItem = menu?.findItem(R.id.action_delete_photos)
-        val selectAllItem = menu?.findItem(R.id.action_select_all)
-        
-        if (photoAdapter.isSelectionMode()) {
-            deleteItem?.isVisible = false  // Hide menu delete, use action buttons instead
-            selectAllItem?.isVisible = true
-        } else {
-            deleteItem?.isVisible = false
-            selectAllItem?.isVisible = false
-        }
-        
+
         return true
     }
-    
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_delete_photos -> {
-                showDeleteConfirmationDialog()
-                true
-            }
-            R.id.action_select_all -> {
-                // TODO: Implement select all functionality
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
-    
-    private fun showDeleteConfirmationDialog() {
-        val selectedCount = photoAdapter.getSelectedCount()
-        val message = if (selectedCount == 1) {
-            "Delete 1 photo?"
-        } else {
-            "Delete $selectedCount photos?"
-        }
-        
-        MaterialAlertDialogBuilder(this)
-            .setTitle(getString(R.string.delete_photo))
-            .setMessage(message)
-            .setPositiveButton(getString(R.string.delete)) { _, _ ->
-                val selectedPhotos = photoAdapter.getSelectedPhotos()
-                viewModel.deletePhotos(selectedPhotos)
-                photoAdapter.disableSelectionMode()
-                updateSelectionCount()
-                invalidateOptionsMenu()
-                Toast.makeText(this, "Photos deleted", Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton(getString(R.string.cancel), null)
-            .show()
-    }
-    
+
     override fun onBackPressed() {
         if (photoAdapter.isSelectionMode()) {
             photoAdapter.disableSelectionMode()
-            updateSelectionCount()
-            invalidateOptionsMenu()
         } else {
             super.onBackPressed()
         }
@@ -323,7 +276,7 @@ class AlbumViewActivity : AppCompatActivity() {
         if (selectedPhotos.isNotEmpty()) {
             viewModel.movePhotosToBin(selectedPhotos)
             photoAdapter.disableSelectionMode()
-            updateSelectionCount()
+            //updateSelectionCount()
             // Action buttons will be hidden automatically by the callback
             Toast.makeText(this, "Photos moved to bin", Toast.LENGTH_SHORT).show()
         }
@@ -350,18 +303,9 @@ class AlbumViewActivity : AppCompatActivity() {
     }
     
     private fun updateSelectionCount() {
-        val tvAlbumTitle = findViewById<android.widget.TextView>(R.id.tvAlbumTitle)
         val tvSelectionCount = findViewById<android.widget.TextView>(R.id.tvSelectionCount)
-        
-        if (photoAdapter.isSelectionMode()) {
-            val selectedCount = photoAdapter.getSelectedCount()
-            tvAlbumTitle.visibility = android.view.View.GONE
-            tvSelectionCount.visibility = android.view.View.VISIBLE
-            tvSelectionCount.text = if (selectedCount == 1) "1 selected" else "$selectedCount selected"
-        } else {
-            tvAlbumTitle.visibility = android.view.View.VISIBLE
-            tvSelectionCount.visibility = android.view.View.GONE
-        }
+        val selectedCount = photoAdapter.getSelectedCount()
+        tvSelectionCount.text = if (selectedCount == 1) "1 selected" else "$selectedCount selected"
     }
     
     private fun showGalleryDeletionConfirmationDialog(count: Int) {

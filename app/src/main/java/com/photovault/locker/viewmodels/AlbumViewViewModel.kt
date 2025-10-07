@@ -28,33 +28,6 @@ class AlbumViewViewModel(
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> = _error
     
-    // Add a refresh trigger to force LiveData update
-    private val _refreshTrigger = MutableLiveData<Unit>()
-    val refreshTrigger: LiveData<Unit> = _refreshTrigger
-    
-    fun deletePhotos(photoIds: List<Long>) {
-        viewModelScope.launch {
-            try {
-                for (photoId in photoIds) {
-                    val photo = photoDao.getPhotoById(photoId)
-                    photo?.let {
-                        // Delete file from storage
-                        fileManager.deletePhotoFromAppStorage(it.filePath)
-                        
-                        // Delete from database
-                        photoDao.deletePhotoById(photoId)
-                    }
-                }
-                
-                // Update album photo count
-                albumDao.updatePhotoCount(albumId)
-
-            } catch (e: Exception) {
-                _error.value = "Failed to delete photos: ${e.message}"
-            }
-        }
-    }
-    
     fun refreshPhotos() {
         viewModelScope.launch {
             try {
@@ -66,9 +39,6 @@ class AlbumViewViewModel(
                 // Reload photos from database and update LiveData
                 val currentPhotos = photoDao.getPhotosByAlbumSync(albumId)
                 android.util.Log.d("AlbumViewViewModel", "Album now has ${currentPhotos.size} photos")
-
-                // Trigger refresh to force UI update
-                _refreshTrigger.value = Unit
                 
             } catch (e: Exception) {
                 android.util.Log.e("AlbumViewViewModel", "Failed to refresh photos: ${e.message}")
