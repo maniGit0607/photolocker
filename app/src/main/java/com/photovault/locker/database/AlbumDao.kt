@@ -36,5 +36,8 @@ interface AlbumDao {
     
     @Query("SELECT cover_photo_path FROM albums WHERE id = :albumId")
     fun getCoverPhoto(albumId: Long): LiveData<String?>
+    
+    @Query("SELECT cover_photo_path FROM albums WHERE id = :albumId")
+    suspend fun getCoverPhotoSync(albumId: Long): String?
 }
 

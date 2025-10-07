@@ -63,16 +63,55 @@ class AlbumViewViewModel(
         return albumDao.getCoverPhoto(albumId)
     }
     
+    private suspend fun getCurrentCoverPhotoPath(): String? {
+        return albumDao.getCoverPhotoSync(albumId)
+    }
+    
+    private suspend fun updateCoverPhotoAfterMove() {
+        try {
+            // Get the first photo remaining in the album
+            val firstPhoto = photoDao.getFirstPhotoInAlbum(albumId)
+            
+            if (firstPhoto != null) {
+                // Set the first photo as the new cover photo
+                albumDao.updateCoverPhoto(albumId, firstPhoto.filePath)
+                android.util.Log.d("AlbumViewViewModel", "Updated cover photo to: ${firstPhoto.originalName}")
+            } else {
+                // No photos remaining in album, clear cover photo
+                albumDao.updateCoverPhoto(albumId, null)
+                android.util.Log.d("AlbumViewViewModel", "No photos remaining in album, cleared cover photo")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("AlbumViewViewModel", "Failed to update cover photo after move: ${e.message}")
+            _error.value = "Failed to update cover photo: ${e.message}"
+        }
+    }
+    
     fun movePhotosToBin(photoIds: List<Long>) {
         viewModelScope.launch {
             try {
+                // Get current cover photo path before moving photos
+                val currentCoverPhotoPath = getCurrentCoverPhotoPath()
+                var isCoverPhotoBeingMoved = false
+                
                 for (photoId in photoIds) {
                     val photo = photoDao.getPhotoById(photoId)
                     photo?.let {
+                        // Check if this photo is the current cover photo
+                        if (currentCoverPhotoPath != null && currentCoverPhotoPath == it.filePath) {
+                            isCoverPhotoBeingMoved = true
+                            android.util.Log.d("AlbumViewViewModel", "Cover photo is being moved to bin: ${it.originalName}")
+                        }
+                        
                         // Move photo to bin (mark as deleted instead of actually deleting)
                         photoDao.movePhotoToBin(photoId)
                         android.util.Log.d("AlbumViewViewModel", "Moved photo to bin: ${it.originalName}")
                     }
+                }
+                
+                // If cover photo was moved, set new cover photo
+                if (isCoverPhotoBeingMoved) {
+                    updateCoverPhotoAfterMove()
                 }
                 
                 // Update album photo count
