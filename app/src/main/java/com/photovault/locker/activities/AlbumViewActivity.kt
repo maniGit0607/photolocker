@@ -243,10 +243,6 @@ class AlbumViewActivity : AppCompatActivity() {
         val popupMenu = android.widget.PopupMenu(this, anchorView)
         popupMenu.menuInflater.inflate(R.menu.album_menu, popupMenu.menu)
         
-        // Hide items that are not relevant for grid size
-        popupMenu.menu.findItem(R.id.action_delete_photos)?.isVisible = false
-        popupMenu.menu.findItem(R.id.action_select_all)?.isVisible = false
-        
         // Set checkmarks for current grid size
         when (currentGridSize) {
             GridSize.SMALL -> popupMenu.menu.findItem(R.id.action_grid_small)?.isChecked = true
