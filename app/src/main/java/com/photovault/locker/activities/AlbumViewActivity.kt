@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.photovault.locker.R
@@ -17,6 +18,7 @@ import com.photovault.locker.databinding.ActivityAlbumViewBinding
 import com.photovault.locker.models.Photo
 import com.photovault.locker.utils.PermissionUtils
 import com.photovault.locker.viewmodels.AlbumViewViewModel
+import kotlinx.coroutines.launch
 
 class AlbumViewActivity : AppCompatActivity() {
     
@@ -83,7 +85,6 @@ class AlbumViewActivity : AppCompatActivity() {
         val tvSelectionCount = findViewById<android.widget.TextView>(R.id.tvSelectionCount)
         val ivBack = findViewById<android.widget.ImageView>(R.id.ivBack)
         val ivMenu = findViewById<android.widget.ImageView>(R.id.ivMenu)
-        val ivCoverPhoto = findViewById<android.widget.ImageView>(R.id.ivCoverPhoto)
         
         tvAlbumTitle.text = albumName
         tvSelectionCount.visibility = android.view.View.GONE
@@ -276,8 +277,7 @@ class AlbumViewActivity : AppCompatActivity() {
         if (selectedPhotos.isNotEmpty()) {
             viewModel.movePhotosToBin(selectedPhotos)
             photoAdapter.disableSelectionMode()
-            //updateSelectionCount()
-            // Action buttons will be hidden automatically by the callback
+
             Toast.makeText(this, "Photos moved to bin", Toast.LENGTH_SHORT).show()
         }
     }
@@ -286,7 +286,7 @@ class AlbumViewActivity : AppCompatActivity() {
         val selectedPhotos = photoAdapter.getSelectedPhotos()
         if (selectedPhotos.isNotEmpty()) {
             // Use coroutine to get albums synchronously
-            androidx.lifecycle.lifecycleScope.launch {
+            lifecycleScope.launch {
                 try {
                     val albums = viewModel.getAllAlbumsExceptCurrentSync()
                     if (albums.isNotEmpty()) {
