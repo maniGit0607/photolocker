@@ -2,8 +2,6 @@ package com.photovault.locker.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -105,7 +103,7 @@ class AlbumViewActivity : AppCompatActivity() {
         
         ivMenu.setOnClickListener {
             android.util.Log.d("AlbumViewActivity", "Menu button clicked")
-            openOptionsMenu()
+            showGridSizePopupMenu(ivMenu)
         }
         
         // Load cover photo
@@ -241,81 +239,45 @@ class AlbumViewActivity : AppCompatActivity() {
         photoImportLauncher.launch(intent)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        android.util.Log.d("AlbumViewActivity", "onCreateOptionsMenu called")
-        menuInflater.inflate(R.menu.album_menu, menu)
+    private fun showGridSizePopupMenu(anchorView: android.view.View) {
+        val popupMenu = android.widget.PopupMenu(this, anchorView)
+        popupMenu.menuInflater.inflate(R.menu.album_menu, popupMenu.menu)
         
-        // Show/hide menu items based on selection mode
-        val deleteItem = menu?.findItem(R.id.action_delete_photos)
-        val selectAllItem = menu?.findItem(R.id.action_select_all)
+        // Hide items that are not relevant for grid size
+        popupMenu.menu.findItem(R.id.action_delete_photos)?.isVisible = false
+        popupMenu.menu.findItem(R.id.action_select_all)?.isVisible = false
         
-        if (photoAdapter.isSelectionMode()) {
-            deleteItem?.isVisible = false  // Hide menu delete, use action buttons instead
-            selectAllItem?.isVisible = true
-        } else {
-            deleteItem?.isVisible = false
-            selectAllItem?.isVisible = false
-        }
-        
-        // Update grid size menu items
-        updateGridSizeMenuItems(menu)
-        
-        android.util.Log.d("AlbumViewActivity", "Menu created with ${menu?.size()} items")
-        return true
-    }
-    
-    private fun updateGridSizeMenuItems(menu: Menu?) {
-        val smallItem = menu?.findItem(R.id.action_grid_small)
-        val mediumItem = menu?.findItem(R.id.action_grid_medium)
-        val largeItem = menu?.findItem(R.id.action_grid_large)
-        
-        // Clear all checkmarks
-        smallItem?.isChecked = false
-        mediumItem?.isChecked = false
-        largeItem?.isChecked = false
-        
-        // Set checkmark for current grid size
+        // Set checkmarks for current grid size
         when (currentGridSize) {
-            GridSize.SMALL -> smallItem?.isChecked = true
-            GridSize.MEDIUM -> mediumItem?.isChecked = true
-            GridSize.LARGE -> largeItem?.isChecked = true
+            GridSize.SMALL -> popupMenu.menu.findItem(R.id.action_grid_small)?.isChecked = true
+            GridSize.MEDIUM -> popupMenu.menu.findItem(R.id.action_grid_medium)?.isChecked = true
+            GridSize.LARGE -> popupMenu.menu.findItem(R.id.action_grid_large)?.isChecked = true
         }
-    }
-    
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        android.util.Log.d("AlbumViewActivity", "Menu item clicked: ${item.title} (ID: ${item.itemId})")
         
-        return when (item.itemId) {
-            R.id.action_delete_photos -> {
-                android.util.Log.d("AlbumViewActivity", "Delete photos clicked")
-                showDeleteConfirmationDialog()
-                true
-            }
-            R.id.action_select_all -> {
-                android.util.Log.d("AlbumViewActivity", "Select all clicked")
-                // TODO: Implement select all functionality
-                true
-            }
-            R.id.action_grid_small -> {
-                android.util.Log.d("AlbumViewActivity", "Grid small clicked")
-                changeGridSize(GridSize.SMALL)
-                true
-            }
-            R.id.action_grid_medium -> {
-                android.util.Log.d("AlbumViewActivity", "Grid medium clicked")
-                changeGridSize(GridSize.MEDIUM)
-                true
-            }
-            R.id.action_grid_large -> {
-                android.util.Log.d("AlbumViewActivity", "Grid large clicked")
-                changeGridSize(GridSize.LARGE)
-                true
-            }
-            else -> {
-                android.util.Log.d("AlbumViewActivity", "Unknown menu item clicked: ${item.itemId}")
-                super.onOptionsItemSelected(item)
+        popupMenu.setOnMenuItemClickListener { item ->
+            android.util.Log.d("AlbumViewActivity", "Popup menu item clicked: ${item.title} (ID: ${item.itemId})")
+            
+            when (item.itemId) {
+                R.id.action_grid_small -> {
+                    android.util.Log.d("AlbumViewActivity", "Grid small clicked")
+                    changeGridSize(GridSize.SMALL)
+                    true
+                }
+                R.id.action_grid_medium -> {
+                    android.util.Log.d("AlbumViewActivity", "Grid medium clicked")
+                    changeGridSize(GridSize.MEDIUM)
+                    true
+                }
+                R.id.action_grid_large -> {
+                    android.util.Log.d("AlbumViewActivity", "Grid large clicked")
+                    changeGridSize(GridSize.LARGE)
+                    true
+                }
+                else -> false
             }
         }
+        
+        popupMenu.show()
     }
     
     private fun changeGridSize(newSize: GridSize) {
