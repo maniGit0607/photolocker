@@ -67,6 +67,10 @@ class AlbumViewViewModel(
         return albumDao.getAllAlbumsExcept(albumId)
     }
     
+    suspend fun getAllAlbumsExceptCurrentSync(): List<com.photovault.locker.models.Album> {
+        return albumDao.getAllAlbumsExceptSync(albumId)
+    }
+    
     fun movePhotosToAlbum(photoIds: List<Long>, targetAlbumId: Long) {
         viewModelScope.launch {
             try {

@@ -285,21 +285,19 @@ class AlbumViewActivity : AppCompatActivity() {
     private fun showAlbumSelectionDialog() {
         val selectedPhotos = photoAdapter.getSelectedPhotos()
         if (selectedPhotos.isNotEmpty()) {
-            // Use a one-time observer to avoid memory leaks
-            val albumsObserver = object : androidx.lifecycle.Observer<List<com.photovault.locker.models.Album>> {
-                override fun onChanged(albums: List<com.photovault.locker.models.Album>) {
-                    // Remove this observer after first emission
-                    viewModel.getAllAlbumsExceptCurrent().removeObserver(this)
-                    
+            // Use coroutine to get albums synchronously
+            androidx.lifecycle.lifecycleScope.launch {
+                try {
+                    val albums = viewModel.getAllAlbumsExceptCurrentSync()
                     if (albums.isNotEmpty()) {
                         showAlbumSelectionDialog(albums, selectedPhotos)
                     } else {
                         Toast.makeText(this@AlbumViewActivity, "No other albums available", Toast.LENGTH_SHORT).show()
                     }
+                } catch (e: Exception) {
+                    Toast.makeText(this@AlbumViewActivity, "Failed to load albums: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
-            
-            viewModel.getAllAlbumsExceptCurrent().observe(this, albumsObserver)
         }
     }
     

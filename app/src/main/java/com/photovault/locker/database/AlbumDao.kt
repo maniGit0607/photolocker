@@ -16,6 +16,9 @@ interface AlbumDao {
     @Query("SELECT * FROM albums WHERE id != :excludeAlbumId ORDER BY created_date DESC")
     fun getAllAlbumsExcept(excludeAlbumId: Long): LiveData<List<Album>>
     
+    @Query("SELECT * FROM albums WHERE id != :excludeAlbumId ORDER BY created_date DESC")
+    suspend fun getAllAlbumsExceptSync(excludeAlbumId: Long): List<Album>
+    
     @Query("SELECT * FROM albums WHERE id = :albumId")
     suspend fun getAlbumById(albumId: Long): Album?
     
