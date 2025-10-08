@@ -302,50 +302,53 @@ class AlbumViewActivity : AppCompatActivity() {
     }
     
     private fun showAlbumSelectionDialog(albums: List<com.photovault.locker.models.Album>, selectedPhotos: List<Long>) {
-        val albumNames = albums.map { it.name }.toTypedArray()
+        // Create a custom dialog with ListView
+        val listView = android.widget.ListView(this)
         
-        // Create a simple AlertDialog with explicit styling
-        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
-        builder.setTitle("Move to Album")
-        builder.setMessage("Select destination album for ${selectedPhotos.size} photo(s)")
-        builder.setItems(albumNames) { _, which ->
-            val selectedAlbum = albums[which]
+        // Create adapter for the list
+        val adapter = android.widget.ArrayAdapter(this, android.R.layout.simple_list_item_1, albums.map { it.name })
+        listView.adapter = adapter
+        
+        // Create dialog
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Move to Album")
+            .setMessage("Select destination album for ${selectedPhotos.size} photo(s)")
+            .setView(listView)
+            .setNegativeButton("Cancel", null)
+            .create()
+        
+        // Set click listener for list items
+        listView.setOnItemClickListener { _, _, position, _ ->
+            val selectedAlbum = albums[position]
             movePhotosToAlbum(selectedPhotos, selectedAlbum.id, selectedAlbum.name)
+            dialog.dismiss()
         }
-        builder.setNegativeButton("Cancel", null)
         
-        val dialog = builder.create()
         dialog.show()
         
-        // Use a delayed approach to ensure the dialog is fully rendered
-        dialog.window?.decorView?.post {
-            // Set background color
-            dialog.window?.setBackgroundDrawableResource(android.R.color.white)
+        // Style the dialog
+        dialog.window?.let { window ->
+            window.setBackgroundDrawableResource(android.R.color.white)
             
-            // Set title text color
-            val titleView = dialog.window?.findViewById<android.widget.TextView>(android.R.id.title)
+            // Style title and message
+            val titleView = window.findViewById<android.widget.TextView>(android.R.id.title)
             titleView?.setTextColor(android.graphics.Color.BLACK)
             
-            // Set message text color
-            val messageView = dialog.window?.findViewById<android.widget.TextView>(android.R.id.message)
+            val messageView = window.findViewById<android.widget.TextView>(android.R.id.message)
             messageView?.setTextColor(android.graphics.Color.BLACK)
             
-            // Find and style all text views in the dialog
-            styleAllTextViews(dialog.window?.decorView)
-        }
-    }
-    
-    private fun styleAllTextViews(view: android.view.View?) {
-        if (view == null) return
-        
-        if (view is android.widget.TextView) {
-            view.setTextColor(android.graphics.Color.BLACK)
-        } else if (view is android.view.ViewGroup) {
-            for (i in 0 until view.childCount) {
-                styleAllTextViews(view.getChildAt(i))
+            // Style list items after they're rendered
+            listView.post {
+                for (i in 0 until listView.childCount) {
+                    val child = listView.getChildAt(i)
+                    if (child is android.widget.TextView) {
+                        child.setTextColor(android.graphics.Color.BLACK)
+                    }
+                }
             }
         }
     }
+    
     
     private fun movePhotosToAlbum(photoIds: List<Long>, targetAlbumId: Long, targetAlbumName: String) {
         viewModel.movePhotosToAlbum(photoIds, targetAlbumId)
