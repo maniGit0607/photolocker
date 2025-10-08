@@ -16,5 +16,23 @@
         app:showAsAction="ifRoom"
         android:visible="false" />
 
+    <item
+        android:id="@+id/action_grid_size"
+        android:title="Grid Size"
+        android:icon="@drawable/ic_photo"
+        app:showAsAction="ifRoom">
+        <menu>
+            <item
+                android:id="@+id/action_grid_small"
+                android:title="Small" />
+            <item
+                android:id="@+id/action_grid_medium"
+                android:title="Medium" />
+            <item
+                android:id="@+id/action_grid_large"
+                android:title="Large" />
+        </menu>
+    </item>
+
 </menu>
 

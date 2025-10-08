@@ -29,6 +29,16 @@ class AlbumViewActivity : AppCompatActivity() {
     private var albumId: Long = -1
     private var albumName: String = ""
     
+    // Grid size management
+    private var currentGridSize = GridSize.MEDIUM
+    private lateinit var gridLayoutManager: GridLayoutManager
+    
+    enum class GridSize(val columnCount: Int, val displayName: String) {
+        SMALL(5, "Small"),      // 75% smaller than medium (3 -> 5 columns)
+        MEDIUM(3, "Medium"),    // Current size
+        LARGE(2, "Large")       // 150% larger than medium (3 -> 2 columns)
+    }
+    
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -143,8 +153,11 @@ class AlbumViewActivity : AppCompatActivity() {
             context = this
         )
         
+        // Initialize grid layout manager
+        gridLayoutManager = GridLayoutManager(this, currentGridSize.columnCount)
+        
         binding.rvPhotos.apply {
-            layoutManager = GridLayoutManager(this@AlbumViewActivity, 3)
+            layoutManager = gridLayoutManager
             adapter = photoAdapter
         }
     }
@@ -229,8 +242,77 @@ class AlbumViewActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.album_menu, menu)
-
+        
+        // Show/hide menu items based on selection mode
+        val deleteItem = menu?.findItem(R.id.action_delete_photos)
+        val selectAllItem = menu?.findItem(R.id.action_select_all)
+        
+        if (photoAdapter.isSelectionMode()) {
+            deleteItem?.isVisible = false  // Hide menu delete, use action buttons instead
+            selectAllItem?.isVisible = true
+        } else {
+            deleteItem?.isVisible = false
+            selectAllItem?.isVisible = false
+        }
+        
+        // Update grid size menu items
+        updateGridSizeMenuItems(menu)
+        
         return true
+    }
+    
+    private fun updateGridSizeMenuItems(menu: Menu?) {
+        val smallItem = menu?.findItem(R.id.action_grid_small)
+        val mediumItem = menu?.findItem(R.id.action_grid_medium)
+        val largeItem = menu?.findItem(R.id.action_grid_large)
+        
+        // Clear all checkmarks
+        smallItem?.isChecked = false
+        mediumItem?.isChecked = false
+        largeItem?.isChecked = false
+        
+        // Set checkmark for current grid size
+        when (currentGridSize) {
+            GridSize.SMALL -> smallItem?.isChecked = true
+            GridSize.MEDIUM -> mediumItem?.isChecked = true
+            GridSize.LARGE -> largeItem?.isChecked = true
+        }
+    }
+    
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_delete_photos -> {
+                showDeleteConfirmationDialog()
+                true
+            }
+            R.id.action_select_all -> {
+                // TODO: Implement select all functionality
+                true
+            }
+            R.id.action_grid_small -> {
+                changeGridSize(GridSize.SMALL)
+                true
+            }
+            R.id.action_grid_medium -> {
+                changeGridSize(GridSize.MEDIUM)
+                true
+            }
+            R.id.action_grid_large -> {
+                changeGridSize(GridSize.LARGE)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+    
+    private fun changeGridSize(newSize: GridSize) {
+        if (currentGridSize != newSize) {
+            currentGridSize = newSize
+            gridLayoutManager.spanCount = newSize.columnCount
+            photoAdapter.notifyDataSetChanged()
+            invalidateOptionsMenu()
+            Toast.makeText(this, "Grid size changed to ${newSize.displayName}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onBackPressed() {
