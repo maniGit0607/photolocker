@@ -117,17 +117,17 @@ class AuthenticationActivity : AppCompatActivity() {
         binding.tvError.text = message
         binding.tvError.visibility = View.VISIBLE
         
-        // Make lock symbol red on wrong password
+        // Change lock icon to red on wrong password
         if (message == getString(R.string.wrong_password)) {
-            binding.ivLock.setColorFilter(android.graphics.Color.RED)
+            binding.ivLock.setImageResource(R.drawable.ic_lock_red)
         }
     }
     
     private fun clearError() {
         binding.tvError.visibility = View.GONE
         
-        // Reset lock symbol to white
-        binding.ivLock.setColorFilter(android.graphics.Color.WHITE)
+        // Reset lock icon to normal white
+        binding.ivLock.setImageResource(R.drawable.ic_lock)
     }
     
     private fun navigateToMainActivity() {
