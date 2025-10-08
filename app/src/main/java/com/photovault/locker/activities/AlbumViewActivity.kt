@@ -285,9 +285,44 @@ class AlbumViewActivity : AppCompatActivity() {
     private fun showAlbumSelectionDialog() {
         val selectedPhotos = photoAdapter.getSelectedPhotos()
         if (selectedPhotos.isNotEmpty()) {
-            // TODO: Implement album selection dialog
-            Toast.makeText(this, "Album selection dialog - TODO", Toast.LENGTH_SHORT).show()
+            // Use a one-time observer to avoid memory leaks
+            val albumsObserver = object : androidx.lifecycle.Observer<List<com.photovault.locker.models.Album>> {
+                override fun onChanged(albums: List<com.photovault.locker.models.Album>) {
+                    // Remove this observer after first emission
+                    viewModel.getAllAlbumsExceptCurrent().removeObserver(this)
+                    
+                    if (albums.isNotEmpty()) {
+                        showAlbumSelectionDialog(albums, selectedPhotos)
+                    } else {
+                        Toast.makeText(this@AlbumViewActivity, "No other albums available", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            
+            viewModel.getAllAlbumsExceptCurrent().observe(this, albumsObserver)
         }
+    }
+    
+    private fun showAlbumSelectionDialog(albums: List<com.photovault.locker.models.Album>, selectedPhotos: List<Long>) {
+        val albumNames = albums.map { it.name }.toTypedArray()
+        
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Move to Album")
+            .setMessage("Select destination album for ${selectedPhotos.size} photo(s)")
+            .setItems(albumNames) { _, which ->
+                val selectedAlbum = albums[which]
+                movePhotosToAlbum(selectedPhotos, selectedAlbum.id, selectedAlbum.name)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    
+    private fun movePhotosToAlbum(photoIds: List<Long>, targetAlbumId: Long, targetAlbumName: String) {
+        viewModel.movePhotosToAlbum(photoIds, targetAlbumId)
+        photoAdapter.disableSelectionMode()
+        updateSelectionCount()
+        invalidateOptionsMenu()
+        Toast.makeText(this, "Photos moved to $targetAlbumName", Toast.LENGTH_SHORT).show()
     }
     
     private fun showActionButtons() {

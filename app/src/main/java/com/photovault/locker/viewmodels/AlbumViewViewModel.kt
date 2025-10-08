@@ -63,6 +63,63 @@ class AlbumViewViewModel(
         return albumDao.getCoverPhoto(albumId)
     }
     
+    fun getAllAlbumsExceptCurrent(): LiveData<List<com.photovault.locker.models.Album>> {
+        return albumDao.getAllAlbumsExcept(albumId)
+    }
+    
+    fun movePhotosToAlbum(photoIds: List<Long>, targetAlbumId: Long) {
+        viewModelScope.launch {
+            try {
+                // Get current cover photo path before moving photos
+                val currentCoverPhotoPath = getCurrentCoverPhotoPath()
+                var isCoverPhotoBeingMoved = false
+                
+                for (photoId in photoIds) {
+                    val photo = photoDao.getPhotoById(photoId)
+                    photo?.let {
+                        // Check if this photo is the current cover photo
+                        if (currentCoverPhotoPath != null && currentCoverPhotoPath == it.filePath) {
+                            isCoverPhotoBeingMoved = true
+                            android.util.Log.d("AlbumViewViewModel", "Cover photo is being moved to another album: ${it.originalName}")
+                        }
+                        
+                        // Update photo's album association
+                        val updatedPhoto = it.copy(albumId = targetAlbumId)
+                        photoDao.updatePhoto(updatedPhoto)
+                        android.util.Log.d("AlbumViewViewModel", "Moved photo to album $targetAlbumId: ${it.originalName}")
+                    }
+                }
+                
+                // If cover photo was moved, set new cover photo for current album
+                if (isCoverPhotoBeingMoved) {
+                    updateCoverPhotoAfterMove()
+                }
+                
+                // Update photo counts for both albums
+                albumDao.updatePhotoCount(albumId)
+                albumDao.updatePhotoCount(targetAlbumId)
+                
+                // Check if target album needs a cover photo
+                val targetAlbum = albumDao.getAlbumById(targetAlbumId)
+                if (targetAlbum?.coverPhotoPath == null) {
+                    // Set the first moved photo as cover photo for target album
+                    val firstMovedPhoto = photoDao.getFirstPhotoInAlbum(targetAlbumId)
+                    if (firstMovedPhoto != null) {
+                        albumDao.updateCoverPhoto(targetAlbumId, firstMovedPhoto.filePath)
+                        android.util.Log.d("AlbumViewViewModel", "Set cover photo for target album: ${firstMovedPhoto.originalName}")
+                    }
+                }
+                
+                // Refresh the photos list
+                refreshPhotos()
+                
+            } catch (e: Exception) {
+                android.util.Log.e("AlbumViewViewModel", "Failed to move photos to album: ${e.message}")
+                _error.value = "Failed to move photos to album: ${e.message}"
+            }
+        }
+    }
+    
     private suspend fun getCurrentCoverPhotoPath(): String? {
         return albumDao.getCoverPhotoSync(albumId)
     }
