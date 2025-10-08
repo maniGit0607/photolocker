@@ -304,15 +304,43 @@ class AlbumViewActivity : AppCompatActivity() {
     private fun showAlbumSelectionDialog(albums: List<com.photovault.locker.models.Album>, selectedPhotos: List<Long>) {
         val albumNames = albums.map { it.name }.toTypedArray()
         
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Move to Album")
-            .setMessage("Select destination album for ${selectedPhotos.size} photo(s)")
-            .setItems(albumNames) { _, which ->
-                val selectedAlbum = albums[which]
-                movePhotosToAlbum(selectedPhotos, selectedAlbum.id, selectedAlbum.name)
+        // Create a simple AlertDialog with explicit styling
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        builder.setTitle("Move to Album")
+        builder.setMessage("Select destination album for ${selectedPhotos.size} photo(s)")
+        builder.setItems(albumNames) { _, which ->
+            val selectedAlbum = albums[which]
+            movePhotosToAlbum(selectedPhotos, selectedAlbum.id, selectedAlbum.name)
+        }
+        builder.setNegativeButton("Cancel", null)
+        
+        val dialog = builder.create()
+        dialog.show()
+        
+        // Ensure proper text colors for all elements
+        dialog.window?.let { window ->
+            // Set background color
+            window.setBackgroundDrawableResource(android.R.color.white)
+            
+            // Set title text color
+            val titleView = window.findViewById<android.widget.TextView>(android.R.id.title)
+            titleView?.setTextColor(android.graphics.Color.BLACK)
+            
+            // Set message text color
+            val messageView = window.findViewById<android.widget.TextView>(android.R.id.message)
+            messageView?.setTextColor(android.graphics.Color.BLACK)
+            
+            // Set list items text color
+            val listView = window.findViewById<android.widget.ListView>(android.R.id.select_dialog_listview)
+            listView?.let { list ->
+                for (i in 0 until list.childCount) {
+                    val child = list.getChildAt(i)
+                    if (child is android.widget.TextView) {
+                        child.setTextColor(android.graphics.Color.BLACK)
+                    }
+                }
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+        }
     }
     
     private fun movePhotosToAlbum(photoIds: List<Long>, targetAlbumId: Long, targetAlbumName: String) {
