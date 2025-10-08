@@ -120,6 +120,7 @@ class AuthenticationActivity : AppCompatActivity() {
         // Change lock icon to red on wrong password
         if (message == getString(R.string.wrong_password)) {
             binding.ivLock.setImageResource(R.drawable.ic_lock_red)
+            binding.ivLock.clearColorFilter() // Remove any tint
         }
     }
     
@@ -128,6 +129,7 @@ class AuthenticationActivity : AppCompatActivity() {
         
         // Reset lock icon to normal white
         binding.ivLock.setImageResource(R.drawable.ic_lock)
+        binding.ivLock.setColorFilter(android.graphics.Color.WHITE) // Restore white tint
     }
     
     private fun navigateToMainActivity() {
