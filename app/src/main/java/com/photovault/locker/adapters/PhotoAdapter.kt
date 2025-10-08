@@ -59,7 +59,7 @@ class PhotoAdapter(
                     .centerCrop()
                     .placeholder(R.drawable.ic_photo)
                     .error(R.drawable.ic_photo)
-                    .override(300, 300) // Limit image size to prevent main thread blocking
+                    .override(400, 400) // Square thumbnails - increased size for better quality
                     .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
                         override fun onLoadFailed(
                             e: com.bumptech.glide.load.engine.GlideException?,

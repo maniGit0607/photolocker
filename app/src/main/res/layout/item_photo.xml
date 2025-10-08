@@ -6,11 +6,12 @@
     android:layout_margin="4dp"
     app:cardCornerRadius="8dp"
     app:cardElevation="2dp"
-    android:foreground="?android:attr/selectableItemBackground">
+    android:foreground="?android:attr/selectableItemBackground"
+    android:adjustViewBounds="true">
 
-    <FrameLayout
+    <com.photovault.locker.utils.SquareFrameLayout
         android:layout_width="match_parent"
-        android:layout_height="200dp">
+        android:layout_height="wrap_content">
 
         <ImageView
             android:id="@+id/ivPhoto"
@@ -39,6 +40,6 @@
             android:visibility="gone"
             android:contentDescription="Selected" />
 
-    </FrameLayout>
+    </com.photovault.locker.utils.SquareFrameLayout>
 
 </androidx.cardview.widget.CardView>
