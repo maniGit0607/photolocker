@@ -104,6 +104,7 @@ class AlbumViewActivity : AppCompatActivity() {
         }
         
         ivMenu.setOnClickListener {
+            android.util.Log.d("AlbumViewActivity", "Menu button clicked")
             openOptionsMenu()
         }
         
@@ -241,6 +242,7 @@ class AlbumViewActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        android.util.Log.d("AlbumViewActivity", "onCreateOptionsMenu called")
         menuInflater.inflate(R.menu.album_menu, menu)
         
         // Show/hide menu items based on selection mode
@@ -258,6 +260,7 @@ class AlbumViewActivity : AppCompatActivity() {
         // Update grid size menu items
         updateGridSizeMenuItems(menu)
         
+        android.util.Log.d("AlbumViewActivity", "Menu created with ${menu?.size()} items")
         return true
     }
     
@@ -280,28 +283,38 @@ class AlbumViewActivity : AppCompatActivity() {
     }
     
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        android.util.Log.d("AlbumViewActivity", "Menu item clicked: ${item.title} (ID: ${item.itemId})")
+        
         return when (item.itemId) {
             R.id.action_delete_photos -> {
+                android.util.Log.d("AlbumViewActivity", "Delete photos clicked")
                 showDeleteConfirmationDialog()
                 true
             }
             R.id.action_select_all -> {
+                android.util.Log.d("AlbumViewActivity", "Select all clicked")
                 // TODO: Implement select all functionality
                 true
             }
             R.id.action_grid_small -> {
+                android.util.Log.d("AlbumViewActivity", "Grid small clicked")
                 changeGridSize(GridSize.SMALL)
                 true
             }
             R.id.action_grid_medium -> {
+                android.util.Log.d("AlbumViewActivity", "Grid medium clicked")
                 changeGridSize(GridSize.MEDIUM)
                 true
             }
             R.id.action_grid_large -> {
+                android.util.Log.d("AlbumViewActivity", "Grid large clicked")
                 changeGridSize(GridSize.LARGE)
                 true
             }
-            else -> super.onOptionsItemSelected(item)
+            else -> {
+                android.util.Log.d("AlbumViewActivity", "Unknown menu item clicked: ${item.itemId}")
+                super.onOptionsItemSelected(item)
+            }
         }
     }
     
