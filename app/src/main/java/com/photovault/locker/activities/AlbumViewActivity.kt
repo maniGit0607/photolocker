@@ -317,28 +317,32 @@ class AlbumViewActivity : AppCompatActivity() {
         val dialog = builder.create()
         dialog.show()
         
-        // Ensure proper text colors for all elements
-        dialog.window?.let { window ->
+        // Use a delayed approach to ensure the dialog is fully rendered
+        dialog.window?.decorView?.post {
             // Set background color
-            window.setBackgroundDrawableResource(android.R.color.white)
+            dialog.window?.setBackgroundDrawableResource(android.R.color.white)
             
             // Set title text color
-            val titleView = window.findViewById<android.widget.TextView>(android.R.id.title)
+            val titleView = dialog.window?.findViewById<android.widget.TextView>(android.R.id.title)
             titleView?.setTextColor(android.graphics.Color.BLACK)
             
             // Set message text color
-            val messageView = window.findViewById<android.widget.TextView>(android.R.id.message)
+            val messageView = dialog.window?.findViewById<android.widget.TextView>(android.R.id.message)
             messageView?.setTextColor(android.graphics.Color.BLACK)
             
-            // Set list items text color
-            val listView = window.findViewById<android.widget.ListView>(android.R.id.select_dialog_listview)
-            listView?.let { list ->
-                for (i in 0 until list.childCount) {
-                    val child = list.getChildAt(i)
-                    if (child is android.widget.TextView) {
-                        child.setTextColor(android.graphics.Color.BLACK)
-                    }
-                }
+            // Find and style all text views in the dialog
+            styleAllTextViews(dialog.window?.decorView)
+        }
+    }
+    
+    private fun styleAllTextViews(view: android.view.View?) {
+        if (view == null) return
+        
+        if (view is android.widget.TextView) {
+            view.setTextColor(android.graphics.Color.BLACK)
+        } else if (view is android.view.ViewGroup) {
+            for (i in 0 until view.childCount) {
+                styleAllTextViews(view.getChildAt(i))
             }
         }
     }
