@@ -140,8 +140,8 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun openBinActivity() {
-        // TODO: Create BinActivity
-        Toast.makeText(this, "Bin activity - TODO", Toast.LENGTH_SHORT).show()
+        val intent = Intent(this, BinActivity::class.java)
+        startActivity(intent)
     }
     
     private fun openSettings() {

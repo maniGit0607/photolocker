@@ -47,8 +47,20 @@ interface PhotoDao {
     @Query("SELECT * FROM photos WHERE is_deleted = 1 ORDER BY deleted_date DESC")
     suspend fun getPhotosInBin(): List<Photo>
     
+    @Query("SELECT * FROM photos WHERE is_deleted = 1 ORDER BY deleted_date DESC")
+    fun getDeletedPhotos(): LiveData<List<Photo>>
+    
     @Query("UPDATE photos SET is_deleted = 0, deleted_date = NULL WHERE id = :photoId")
     suspend fun restorePhotoFromBin(photoId: Long)
+    
+    @Query("UPDATE photos SET is_deleted = 0, deleted_date = NULL WHERE id IN (:photoIds)")
+    suspend fun restorePhotosFromBin(photoIds: List<Long>)
+    
+    @Query("DELETE FROM photos WHERE id = :photoId")
+    suspend fun permanentlyDeletePhoto(photoId: Long)
+    
+    @Query("DELETE FROM photos WHERE id IN (:photoIds)")
+    suspend fun permanentlyDeletePhotos(photoIds: List<Long>)
     
     @Query("DELETE FROM photos WHERE is_deleted = 1")
     suspend fun permanentlyDeletePhotosInBin()
