@@ -20,15 +20,8 @@ class BinActivity : AppCompatActivity() {
     private lateinit var viewModel: BinViewModel
     private lateinit var photoAdapter: PhotoAdapter
     
-    // Grid size management
-    private var currentGridSize = GridSize.MEDIUM
+    // Grid layout manager
     private lateinit var gridLayoutManager: GridLayoutManager
-    
-    enum class GridSize(val columnCount: Int, val displayName: String) {
-        SMALL(5, "Small"),      // 75% smaller than medium (3 -> 5 columns)
-        MEDIUM(3, "Medium"),    // Current size
-        LARGE(2, "Large")       // 150% larger than medium (3 -> 2 columns)
-    }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,23 +35,9 @@ class BinActivity : AppCompatActivity() {
     }
     
     private fun setupToolbar() {
-        // Set up custom toolbar
-        val tvAlbumTitle = findViewById<android.widget.TextView>(R.id.tvAlbumTitle)
-        val tvSelectionCount = findViewById<android.widget.TextView>(R.id.tvSelectionCount)
-        val ivBack = findViewById<android.widget.ImageView>(R.id.ivBack)
-        val ivMenu = findViewById<android.widget.ImageView>(R.id.ivMenu)
-        
-        tvAlbumTitle.text = "Bin"
-        tvSelectionCount.visibility = android.view.View.GONE
-        
-        ivBack.setOnClickListener {
-            onBackPressed()
-        }
-        
-        ivMenu.setOnClickListener {
-            android.util.Log.d("BinActivity", "Menu button clicked")
-            showGridSizePopupMenu(ivMenu)
-        }
+        // Set up default ActionBar
+        supportActionBar?.title = "Bin"
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
     
     private fun setupViewModel() {
@@ -93,15 +72,9 @@ class BinActivity : AppCompatActivity() {
             onSelectionModeChanged = { isSelectionMode ->
                 // Handle selection mode changes
                 updateSelectionCount()
-                val tvAlbumTitle = findViewById<android.widget.TextView>(R.id.tvAlbumTitle)
-                val tvSelectionCount = findViewById<android.widget.TextView>(R.id.tvSelectionCount)
                 if (isSelectionMode) {
-                    tvAlbumTitle.visibility = android.view.View.GONE
-                    tvSelectionCount.visibility = android.view.View.VISIBLE
                     showActionButtons()
                 } else {
-                    tvAlbumTitle.visibility = android.view.View.VISIBLE
-                    tvSelectionCount.visibility = android.view.View.GONE
                     hideActionButtons()
                 }
                 invalidateOptionsMenu()
@@ -110,7 +83,7 @@ class BinActivity : AppCompatActivity() {
         )
         
         // Initialize grid layout manager
-        gridLayoutManager = GridLayoutManager(this, currentGridSize.columnCount)
+        gridLayoutManager = GridLayoutManager(this, 3) // Fixed 3 columns
         
         binding.rvPhotos.apply {
             layoutManager = gridLayoutManager
@@ -149,57 +122,6 @@ class BinActivity : AppCompatActivity() {
             android.util.Log.d("BinActivity", "Loading state: $isLoading")
         }
     }
-    
-    private fun showGridSizePopupMenu(anchorView: android.view.View) {
-        val popupMenu = android.widget.PopupMenu(this, anchorView)
-        popupMenu.menuInflater.inflate(R.menu.album_menu, popupMenu.menu)
-        
-        // Hide items that are not relevant for grid size
-        popupMenu.menu.findItem(R.id.action_delete_photos)?.isVisible = false
-        popupMenu.menu.findItem(R.id.action_select_all)?.isVisible = false
-        
-        // Set checkmarks for current grid size
-        when (currentGridSize) {
-            GridSize.SMALL -> popupMenu.menu.findItem(R.id.action_grid_small)?.isChecked = true
-            GridSize.MEDIUM -> popupMenu.menu.findItem(R.id.action_grid_medium)?.isChecked = true
-            GridSize.LARGE -> popupMenu.menu.findItem(R.id.action_grid_large)?.isChecked = true
-        }
-        
-        popupMenu.setOnMenuItemClickListener { item ->
-            android.util.Log.d("BinActivity", "Popup menu item clicked: ${item.title} (ID: ${item.itemId})")
-            
-            when (item.itemId) {
-                R.id.action_grid_small -> {
-                    android.util.Log.d("BinActivity", "Grid small clicked")
-                    changeGridSize(GridSize.SMALL)
-                    true
-                }
-                R.id.action_grid_medium -> {
-                    android.util.Log.d("BinActivity", "Grid medium clicked")
-                    changeGridSize(GridSize.MEDIUM)
-                    true
-                }
-                R.id.action_grid_large -> {
-                    android.util.Log.d("BinActivity", "Grid large clicked")
-                    changeGridSize(GridSize.LARGE)
-                    true
-                }
-                else -> false
-            }
-        }
-        
-        popupMenu.show()
-    }
-    
-    private fun changeGridSize(newSize: GridSize) {
-        if (currentGridSize != newSize) {
-            currentGridSize = newSize
-            gridLayoutManager.spanCount = newSize.columnCount
-            photoAdapter.notifyDataSetChanged()
-            invalidateOptionsMenu()
-            Toast.makeText(this, "Grid size changed to ${newSize.displayName}", Toast.LENGTH_SHORT).show()
-        }
-    }
 
     override fun onBackPressed() {
         if (photoAdapter.isSelectionMode()) {
@@ -231,9 +153,12 @@ class BinActivity : AppCompatActivity() {
     }
     
     private fun updateSelectionCount() {
-        val tvSelectionCount = findViewById<android.widget.TextView>(R.id.tvSelectionCount)
         val selectedCount = photoAdapter.getSelectedCount()
-        tvSelectionCount.text = if (selectedCount == 1) "1 photo selected" else "$selectedCount photos selected"
+        if (photoAdapter.isSelectionMode()) {
+            supportActionBar?.title = if (selectedCount == 1) "1 photo selected" else "$selectedCount photos selected"
+        } else {
+            supportActionBar?.title = "Bin"
+        }
     }
     
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -253,6 +178,10 @@ class BinActivity : AppCompatActivity() {
     
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
             R.id.action_restore -> {
                 restoreSelectedPhotos()
                 true

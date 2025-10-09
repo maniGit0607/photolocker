@@ -67,7 +67,7 @@
             android:name=".activities.BinActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhotoVaultLocker.NoActionBar" />
+            android:theme="@style/Theme.PhotoVaultLocker" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
