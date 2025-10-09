@@ -3,20 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_select_all"
-        android:title="Select All"
-        android:icon="@drawable/ic_select_all"
-        app:showAsAction="never"
-        android:visible="false" />
-
-    <item
-        android:id="@+id/action_delete_photos"
-        android:title="Delete Photos"
-        android:icon="@drawable/ic_delete"
-        app:showAsAction="ifRoom"
-        android:visible="false" />
-
-    <item
         android:id="@+id/action_grid_small"
         android:title="Grid: Small"
         android:icon="@drawable/ic_photo"

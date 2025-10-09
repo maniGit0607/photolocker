@@ -119,8 +119,11 @@ class AuthenticationActivity : AppCompatActivity() {
         
         // Change lock icon to red on wrong password
         if (message == getString(R.string.wrong_password)) {
-            binding.ivLock.setImageResource(R.drawable.ic_lock_red)
-            binding.ivLock.clearColorFilter() // Remove any tint
+            //binding.ivLock.setImageResource(R.drawable.ic_lock_red)
+            val ivRedLock = findViewById<android.widget.ImageView>(R.id.ivRedLock)
+            val ivLock = findViewById<android.widget.ImageView>(R.id.ivLock)
+            ivLock.visibility = android.view.View.GONE
+            ivRedLock.visibility = android.view.View.VISIBLE
         }
     }
     
