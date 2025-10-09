@@ -476,9 +476,15 @@ class AlbumViewActivity : AppCompatActivity() {
             .setTitle("Delete from Gallery")
             .setMessage(message)
             .setPositiveButton("Delete") { _, _ ->
-                // Use the stored gallery photos for deletion
-                if (importedGalleryPhotos.isNotEmpty()) {
-                    viewModel.deleteImportedPhotosFromGallery(importedGalleryPhotos)
+                // Check permissions before attempting deletion
+                if (PermissionUtils.hasAllStoragePermissions(this)) {
+                    // Use the stored gallery photos for deletion
+                    if (importedGalleryPhotos.isNotEmpty()) {
+                        viewModel.deleteImportedPhotosFromGallery(importedGalleryPhotos)
+                    }
+                } else {
+                    // Request MANAGE_EXTERNAL_STORAGE permission
+                    showManageStoragePermissionDialog()
                 }
             }
             .setNegativeButton("Keep in Gallery") { _, _ ->
@@ -486,6 +492,24 @@ class AlbumViewActivity : AppCompatActivity() {
                 Toast.makeText(this, "Photos kept in gallery", Toast.LENGTH_SHORT).show()
             }
             .setCancelable(false)
+            .show()
+    }
+    
+    private fun showManageStoragePermissionDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Storage Permission Required")
+            .setMessage("To delete photos from gallery, this app needs 'All files access' permission. Please grant this permission in the next screen.")
+            .setPositiveButton("Grant Permission") { _, _ ->
+                try {
+                    val intent = PermissionUtils.getManageExternalStorageIntent(this)
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Toast.makeText(this, "Please enable 'All files access' permission in Settings", Toast.LENGTH_LONG).show()
+                }
+            }
+            .setNegativeButton("Cancel") { _, _ ->
+                Toast.makeText(this, "Photos kept in gallery", Toast.LENGTH_SHORT).show()
+            }
             .show()
     }
     
