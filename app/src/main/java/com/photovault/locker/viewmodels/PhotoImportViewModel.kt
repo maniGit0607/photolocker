@@ -35,12 +35,6 @@ class PhotoImportViewModel(
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> = _error
     
-    // Track imported photos for gallery deletion
-    private val importedGalleryPhotos = mutableListOf<GalleryPhoto>()
-    
-    // LiveData to trigger gallery deletion confirmation dialog
-    private val _showGalleryDeletionDialog = MutableLiveData<Int>()
-    val showGalleryDeletionDialog: LiveData<Int> = _showGalleryDeletionDialog
     
     fun importPhotos(galleryPhotos: List<GalleryPhoto>) {
         viewModelScope.launch {
@@ -49,8 +43,6 @@ class PhotoImportViewModel(
                 var successCount = 0
                 val totalCount = galleryPhotos.size
                 
-                // Clear previous imported photos
-                importedGalleryPhotos.clear()
                 
                 for ((index, galleryPhoto) in galleryPhotos.withIndex()) {
                     try {
@@ -87,8 +79,6 @@ class PhotoImportViewModel(
                             val savedPhoto = photoDao.getPhotoById(photoId)
                             android.util.Log.d("PhotoImportViewModel", "Verified photo in database: ${savedPhoto != null}")
                             
-                            // Track this photo for potential gallery deletion
-                            importedGalleryPhotos.add(galleryPhoto)
                             
                             successCount++
                         } else {
@@ -133,6 +123,7 @@ class PhotoImportViewModel(
             }
         }
     }
+    
     
     class Factory(
         private val application: Application,

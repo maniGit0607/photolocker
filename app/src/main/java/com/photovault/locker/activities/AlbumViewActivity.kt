@@ -58,7 +58,10 @@ class AlbumViewActivity : AppCompatActivity() {
             // Get the imported count and show gallery deletion dialog
             val importedCount = result.data?.getIntExtra("imported_count", 0) ?: 0
             if (importedCount > 0) {
-                showGalleryDeletionConfirmationDialog(importedCount)
+                // Show dialog after a short delay to let user see the photos in album
+                binding.rvPhotos.postDelayed({
+                    viewModel.showGalleryDeletionDialog(importedCount)
+                }, 1000) // 1 second delay
             }
         }
     }
@@ -227,6 +230,29 @@ class AlbumViewActivity : AppCompatActivity() {
             if (error.isNotEmpty()) {
                 android.util.Log.e("AlbumViewActivity", "Error: $error")
                 Toast.makeText(this, error, Toast.LENGTH_LONG).show()
+            }
+        }
+        
+        // Observe gallery deletion dialog trigger
+        viewModel.showGalleryDeletionDialog.observe(this) { count ->
+            if (count > 0) {
+                showGalleryDeletionConfirmationDialog(count)
+            }
+        }
+        
+        // Observe gallery deletion result
+        viewModel.galleryDeletionResult.observe(this) { (success, deletedCount) ->
+            if (success) {
+                if (deletedCount > 0) {
+                    val message = if (deletedCount == 1) {
+                        "1 photo deleted from gallery"
+                    } else {
+                        "$deletedCount photos deleted from gallery"
+                    }
+                    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(this, "Failed to delete photos from gallery", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -431,23 +457,28 @@ class AlbumViewActivity : AppCompatActivity() {
     
     private fun showGalleryDeletionConfirmationDialog(count: Int) {
         val message = if (count == 1) {
-            "Photos have been safely imported to your album. Do you want to delete 1 imported photo from gallery?"
+            "Photos have been safely imported to your album. You can see them above. Do you want to delete 1 imported photo from gallery?"
         } else {
-            "Photos have been safely imported to your album. Do you want to delete $count imported photos from gallery?"
+            "Photos have been safely imported to your album. You can see them above. Do you want to delete $count imported photos from gallery?"
         }
         
         MaterialAlertDialogBuilder(this)
             .setTitle("Delete from Gallery")
             .setMessage(message)
             .setPositiveButton("Delete") { _, _ ->
-                // TODO: Implement gallery deletion
-                Toast.makeText(this, "Photos deleted from gallery", Toast.LENGTH_SHORT).show()
+                // Get the recently imported photos (last N photos in the album)
+                viewModel.photos.value?.let { allPhotos ->
+                    val recentlyImportedPhotos = allPhotos.takeLast(count)
+                    viewModel.deleteImportedPhotosFromGallery(recentlyImportedPhotos)
+                }
             }
             .setNegativeButton("Keep in Gallery") { _, _ ->
+                viewModel.skipGalleryDeletion()
                 Toast.makeText(this, "Photos kept in gallery", Toast.LENGTH_SHORT).show()
             }
             .setCancelable(false)
             .show()
     }
+    
 }
 

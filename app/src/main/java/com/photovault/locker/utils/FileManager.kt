@@ -51,9 +51,18 @@ class FileManager(private val context: Context) {
     fun deletePhotoFromGallery(uri: Uri): Boolean {
         return try {
             val rowsDeleted = context.contentResolver.delete(uri, null, null)
-            rowsDeleted > 0
+            val success = rowsDeleted > 0
+            if (success) {
+                Log.d(TAG, "Successfully deleted photo from gallery: $uri")
+            } else {
+                Log.w(TAG, "Failed to delete photo from gallery: $uri (rows deleted: $rowsDeleted)")
+            }
+            success
+        } catch (e: SecurityException) {
+            Log.e(TAG, "Permission denied when deleting photo from gallery: $uri", e)
+            false
         } catch (e: Exception) {
-            Log.e(TAG, "Error deleting photo from gallery", e)
+            Log.e(TAG, "Error deleting photo from gallery: $uri", e)
             false
         }
     }

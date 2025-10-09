@@ -156,6 +156,7 @@ class PhotoImportActivity : AppCompatActivity() {
             }
         }
         
+        
         viewModel.error.observe(this) { error ->
             if (error.isNotEmpty()) {
                 Toast.makeText(this, error, Toast.LENGTH_LONG).show()
@@ -282,6 +283,7 @@ class PhotoImportActivity : AppCompatActivity() {
             }
             .show()
     }
+    
     
 }
 

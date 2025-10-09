@@ -11,6 +11,8 @@ import com.photovault.locker.database.PhotoVaultDatabase
 import com.photovault.locker.models.Photo
 import com.photovault.locker.utils.FileManager
 import kotlinx.coroutines.launch
+import android.net.Uri
+import android.provider.MediaStore
 
 class AlbumViewViewModel(
     application: Application,
@@ -27,6 +29,13 @@ class AlbumViewViewModel(
     
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> = _error
+    
+    // Gallery deletion functionality
+    private val _showGalleryDeletionDialog = MutableLiveData<Int>()
+    val showGalleryDeletionDialog: LiveData<Int> = _showGalleryDeletionDialog
+    
+    private val _galleryDeletionResult = MutableLiveData<Pair<Boolean, Int>>()
+    val galleryDeletionResult: LiveData<Pair<Boolean, Int>> = _galleryDeletionResult
     
     fun refreshPhotos() {
         viewModelScope.launch {
@@ -185,6 +194,78 @@ class AlbumViewViewModel(
                 android.util.Log.e("AlbumViewViewModel", "Failed to move photos to bin: ${e.message}")
                 _error.value = "Failed to move photos to bin: ${e.message}"
             }
+        }
+    }
+    
+    fun showGalleryDeletionDialog(importedCount: Int) {
+        _showGalleryDeletionDialog.value = importedCount
+    }
+    
+    fun deleteImportedPhotosFromGallery(importedPhotos: List<Photo>) {
+        viewModelScope.launch {
+            try {
+                android.util.Log.d("AlbumViewViewModel", "Starting gallery deletion of ${importedPhotos.size} photos")
+                var successCount = 0
+                
+                for (photo in importedPhotos) {
+                    try {
+                        // Find the corresponding gallery photo by matching file name
+                        val galleryUri = findGalleryPhotoUri(photo.originalName)
+                        if (galleryUri != null) {
+                            val deleted = fileManager.deletePhotoFromGallery(galleryUri)
+                            if (deleted) {
+                                successCount++
+                                android.util.Log.d("AlbumViewViewModel", "Successfully deleted from gallery: ${photo.originalName}")
+                            } else {
+                                android.util.Log.w("AlbumViewViewModel", "Failed to delete from gallery: ${photo.originalName}")
+                            }
+                        } else {
+                            android.util.Log.w("AlbumViewViewModel", "Could not find gallery photo for: ${photo.originalName}")
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("AlbumViewViewModel", "Error deleting from gallery: ${photo.originalName}, ${e.message}")
+                    }
+                }
+                
+                android.util.Log.d("AlbumViewViewModel", "Gallery deletion completed. Success count: $successCount")
+                _galleryDeletionResult.value = Pair(successCount > 0, successCount)
+                
+            } catch (e: Exception) {
+                android.util.Log.e("AlbumViewViewModel", "Gallery deletion failed with exception: ${e.message}", e)
+                _error.value = "Failed to delete photos from gallery: ${e.message}"
+                _galleryDeletionResult.value = Pair(false, 0)
+            }
+        }
+    }
+    
+    fun skipGalleryDeletion() {
+        _galleryDeletionResult.value = Pair(true, 0)
+    }
+    
+    private suspend fun findGalleryPhotoUri(originalName: String): Uri? {
+        return try {
+            val projection = arrayOf(MediaStore.Images.Media._ID)
+            val selection = "${MediaStore.Images.Media.DISPLAY_NAME} = ?"
+            val selectionArgs = arrayOf(originalName)
+            
+            getApplication<Application>().contentResolver.query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                selection,
+                selectionArgs,
+                null
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+                    val id = cursor.getLong(idColumn)
+                    Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id.toString())
+                } else {
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("AlbumViewViewModel", "Error finding gallery photo URI for: $originalName", e)
+            null
         }
     }
     
