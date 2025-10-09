@@ -29,8 +29,11 @@ class PhotoImportViewModel(
     private val _importProgress = MutableLiveData<Int>()
     val importProgress: LiveData<Int> = _importProgress
     
-    private val _importComplete = MutableLiveData<Pair<Boolean, Int>>()
-    val importComplete: LiveData<Pair<Boolean, Int>> = _importComplete
+    private val _importComplete = MutableLiveData<Triple<Boolean, Int, List<GalleryPhoto>>>()
+    val importComplete: LiveData<Triple<Boolean, Int, List<GalleryPhoto>>> = _importComplete
+    
+    // Track imported photos for gallery deletion
+    private val importedGalleryPhotos = mutableListOf<GalleryPhoto>()
     
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> = _error
@@ -43,6 +46,8 @@ class PhotoImportViewModel(
                 var successCount = 0
                 val totalCount = galleryPhotos.size
                 
+                // Clear previous imported photos
+                importedGalleryPhotos.clear()
                 
                 for ((index, galleryPhoto) in galleryPhotos.withIndex()) {
                     try {
@@ -79,6 +84,8 @@ class PhotoImportViewModel(
                             val savedPhoto = photoDao.getPhotoById(photoId)
                             android.util.Log.d("PhotoImportViewModel", "Verified photo in database: ${savedPhoto != null}")
                             
+                            // Track this photo for potential gallery deletion
+                            importedGalleryPhotos.add(galleryPhoto)
                             
                             successCount++
                         } else {
@@ -114,12 +121,12 @@ class PhotoImportViewModel(
                 
                 android.util.Log.d("PhotoImportViewModel", "Album metadata updated")
                 
-                _importComplete.value = Pair(successCount > 0, successCount)
+                _importComplete.value = Triple(successCount > 0, successCount, importedGalleryPhotos.toList())
                 
             } catch (e: Exception) {
                 android.util.Log.e("PhotoImportViewModel", "Import failed with exception: ${e.message}", e)
                 _error.value = "Import failed: ${e.message}"
-                _importComplete.value = Pair(false, 0)
+                _importComplete.value = Triple(false, 0, emptyList())
             }
         }
     }

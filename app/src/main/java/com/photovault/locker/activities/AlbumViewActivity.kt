@@ -13,6 +13,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.photovault.locker.R
 import com.photovault.locker.adapters.PhotoAdapter
 import com.photovault.locker.databinding.ActivityAlbumViewBinding
+import com.photovault.locker.models.GalleryPhoto
 import com.photovault.locker.models.Photo
 import com.photovault.locker.utils.PermissionUtils
 import com.photovault.locker.viewmodels.AlbumViewViewModel
@@ -26,6 +27,9 @@ class AlbumViewActivity : AppCompatActivity() {
     
     private var albumId: Long = -1
     private var albumName: String = ""
+    
+    // Store imported gallery photos for potential deletion
+    private var importedGalleryPhotos: List<GalleryPhoto> = emptyList()
     
     // Grid size management
     private var currentGridSize = GridSize.MEDIUM
@@ -55,9 +59,15 @@ class AlbumViewActivity : AppCompatActivity() {
             // Photos were imported successfully, refresh the view
             viewModel.refreshPhotos()
             
-            // Get the imported count and show gallery deletion dialog
+            // Get the imported count and gallery photos
             val importedCount = result.data?.getIntExtra("imported_count", 0) ?: 0
-            if (importedCount > 0) {
+            val galleryPhotos = result.data?.getParcelableArrayExtra("imported_gallery_photos")
+                ?.mapNotNull { it as? GalleryPhoto } ?: emptyList()
+            
+            if (importedCount > 0 && galleryPhotos.isNotEmpty()) {
+                // Store the gallery photos for potential deletion
+                importedGalleryPhotos = galleryPhotos
+                
                 // Show dialog after a short delay to let user see the photos in album
                 binding.rvPhotos.postDelayed({
                     viewModel.showGalleryDeletionDialog(importedCount)
@@ -466,10 +476,9 @@ class AlbumViewActivity : AppCompatActivity() {
             .setTitle("Delete from Gallery")
             .setMessage(message)
             .setPositiveButton("Delete") { _, _ ->
-                // Get the recently imported photos (last N photos in the album)
-                viewModel.photos.value?.let { allPhotos ->
-                    val recentlyImportedPhotos = allPhotos.takeLast(count)
-                    viewModel.deleteImportedPhotosFromGallery(recentlyImportedPhotos)
+                // Use the stored gallery photos for deletion
+                if (importedGalleryPhotos.isNotEmpty()) {
+                    viewModel.deleteImportedPhotosFromGallery(importedGalleryPhotos)
                 }
             }
             .setNegativeButton("Keep in Gallery") { _, _ ->

@@ -138,14 +138,15 @@ class PhotoImportActivity : AppCompatActivity() {
             // You could show a progress dialog here
         }
         
-        viewModel.importComplete.observe(this) { (success, count) ->
+        viewModel.importComplete.observe(this) { (success, count, importedGalleryPhotos) ->
             if (success) {
                 val message = getString(R.string.photos_imported, count)
                 Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
                 
-                // Set result to indicate photos were imported successfully with count
+                // Set result to indicate photos were imported successfully with count and gallery photos
                 val resultIntent = Intent().apply {
                     putExtra("imported_count", count)
+                    putExtra("imported_gallery_photos", importedGalleryPhotos.toTypedArray())
                 }
                 setResult(RESULT_OK, resultIntent)
                 finish()
