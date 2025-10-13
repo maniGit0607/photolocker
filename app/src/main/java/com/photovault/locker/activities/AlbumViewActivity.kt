@@ -192,15 +192,34 @@ class AlbumViewActivity : AppCompatActivity() {
     }
     
     private fun setupActionButtons() {
-        val btnDelete = findViewById<com.google.android.material.button.MaterialButton>(R.id.btnDelete)
-        val btnSwap = findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSwap)
+        val btnSelectAll = findViewById<android.widget.LinearLayout>(R.id.btnSelectAll)
+        val btnExport = findViewById<android.widget.LinearLayout>(R.id.btnExport)
+        val btnMove = findViewById<android.widget.LinearLayout>(R.id.btnMove)
+        val btnDelete = findViewById<android.widget.LinearLayout>(R.id.btnDelete)
+        val ivSelectAll = findViewById<android.widget.ImageView>(R.id.ivSelectAll)
+        
+        btnSelectAll.setOnClickListener {
+            if (photoAdapter.isAllSelected()) {
+                // Deselect all
+                photoAdapter.disableSelectionMode()
+            } else {
+                // Select all
+                photoAdapter.selectAll()
+                updateSelectAllIcon()
+            }
+            updateSelectionCount()
+        }
+        
+        btnExport.setOnClickListener {
+            exportSelectedPhotos()
+        }
+        
+        btnMove.setOnClickListener {
+            showAlbumSelectionDialog()
+        }
         
         btnDelete.setOnClickListener {
             moveSelectedPhotosToBin()
-        }
-        
-        btnSwap.setOnClickListener {
-            showAlbumSelectionDialog()
         }
     }
     
@@ -463,6 +482,124 @@ class AlbumViewActivity : AppCompatActivity() {
         val tvSelectionCount = findViewById<android.widget.TextView>(R.id.tvSelectionCount)
         val selectedCount = photoAdapter.getSelectedCount()
         tvSelectionCount.text = if (selectedCount == 1) "1 selected" else "$selectedCount selected"
+        updateSelectAllIcon()
+    }
+    
+    private fun updateSelectAllIcon() {
+        val ivSelectAll = findViewById<android.widget.ImageView>(R.id.ivSelectAll)
+        if (photoAdapter.isAllSelected()) {
+            ivSelectAll.setImageResource(R.drawable.ic_check_circle)
+        } else {
+            ivSelectAll.setImageResource(R.drawable.ic_select_all)
+        }
+    }
+    
+    private fun exportSelectedPhotos() {
+        val selectedPhotos = photoAdapter.getSelectedPhotos()
+        if (selectedPhotos.isEmpty()) {
+            Toast.makeText(this, "No photos selected", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Check if we have storage permissions
+        if (!PermissionUtils.hasStoragePermissions(this)) {
+            Toast.makeText(this, "Storage permission is required to export photos", Toast.LENGTH_LONG).show()
+            requestPermissionLauncher.launch(PermissionUtils.getRequiredPermissions())
+            return
+        }
+        
+        // Export photos in a coroutine
+        lifecycleScope.launch {
+            try {
+                val photos = viewModel.photos.value ?: emptyList()
+                val photosToExport = photos.filter { selectedPhotos.contains(it.id) }
+                
+                if (photosToExport.isEmpty()) {
+                    Toast.makeText(this@AlbumViewActivity, "No photos to export", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                
+                var successCount = 0
+                var failureCount = 0
+                
+                for (photo in photosToExport) {
+                    try {
+                        val sourceFile = java.io.File(photo.filePath)
+                        if (!sourceFile.exists()) {
+                            failureCount++
+                            continue
+                        }
+                        
+                        // Get the Pictures directory
+                        val picturesDir = android.os.Environment.getExternalStoragePublicDirectory(
+                            android.os.Environment.DIRECTORY_PICTURES
+                        )
+                        val photovaultDir = java.io.File(picturesDir, "PhotoVault")
+                        if (!photovaultDir.exists()) {
+                            photovaultDir.mkdirs()
+                        }
+                        
+                        // Create destination file with original name
+                        var destFile = java.io.File(photovaultDir, photo.originalName)
+                        var counter = 1
+                        while (destFile.exists()) {
+                            val nameWithoutExt = photo.originalName.substringBeforeLast(".")
+                            val ext = photo.originalName.substringAfterLast(".")
+                            destFile = java.io.File(photovaultDir, "${nameWithoutExt}_$counter.$ext")
+                            counter++
+                        }
+                        
+                        // Copy the file
+                        sourceFile.copyTo(destFile, overwrite = false)
+                        
+                        // Add to media store so it appears in gallery
+                        val values = android.content.ContentValues().apply {
+                            put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, destFile.name)
+                            put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/*")
+                            put(android.provider.MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000)
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                                put(android.provider.MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+                                put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, "Pictures/PhotoVault")
+                            } else {
+                                put(android.provider.MediaStore.Images.Media.DATA, destFile.absolutePath)
+                            }
+                        }
+                        
+                        contentResolver.insert(
+                            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                            values
+                        )
+                        
+                        successCount++
+                    } catch (e: Exception) {
+                        android.util.Log.e("AlbumViewActivity", "Failed to export photo: ${e.message}")
+                        failureCount++
+                    }
+                }
+                
+                // Show result
+                val message = when {
+                    successCount > 0 && failureCount == 0 -> {
+                        if (successCount == 1) "1 photo exported to gallery" 
+                        else "$successCount photos exported to gallery"
+                    }
+                    successCount > 0 && failureCount > 0 -> {
+                        "$successCount exported, $failureCount failed"
+                    }
+                    else -> "Failed to export photos"
+                }
+                
+                Toast.makeText(this@AlbumViewActivity, message, Toast.LENGTH_LONG).show()
+                
+                // Disable selection mode after export
+                if (successCount > 0) {
+                    photoAdapter.disableSelectionMode()
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("AlbumViewActivity", "Export failed: ${e.message}")
+                Toast.makeText(this@AlbumViewActivity, "Export failed: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
     }
     
     private fun showGalleryDeletionConfirmationDialog(count: Int) {

@@ -5,36 +5,125 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center"
-    android:padding="16dp"
+    android:padding="8dp"
     android:background="@color/primary_color"
     android:elevation="8dp">
 
+    <!-- Select All Checkbox Button -->
+    <LinearLayout
+        android:id="@+id/btnSelectAll"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="12dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true">
+
+        <ImageView
+            android:id="@+id/ivSelectAll"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_select_all"
+            android:contentDescription="Select All"
+            app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select All"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Export Button -->
+    <LinearLayout
+        android:id="@+id/btnExport"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="12dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true">
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_export"
+            android:contentDescription="Export"
+            app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Export"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Move Button -->
+    <LinearLayout
+        android:id="@+id/btnMove"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="12dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true">
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_move"
+            android:contentDescription="Move"
+            app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Move"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
     <!-- Delete Button -->
-    <com.google.android.material.button.MaterialButton
+    <LinearLayout
         android:id="@+id/btnDelete"
         android:layout_width="0dp"
-        android:layout_height="56dp"
+        android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:layout_marginEnd="8dp"
-        android:text="Move to Bin"
-        android:textColor="@color/white"
-        android:backgroundTint="@color/error_color"
-        app:icon="@drawable/ic_delete"
-        app:iconTint="@color/white"
-        style="@style/Widget.Material3.Button" />
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="12dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true">
 
-    <!-- Swap Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnSwap"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:layout_weight="1"
-        android:layout_marginStart="8dp"
-        android:text="Move to Album"
-        android:textColor="@color/white"
-        android:backgroundTint="@color/primary_color"
-        app:icon="@drawable/ic_arrow_back"
-        app:iconTint="@color/white"
-        style="@style/Widget.Material3.Button.OutlinedButton" />
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_delete"
+            android:contentDescription="Delete"
+            app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Delete"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
 
 </LinearLayout>

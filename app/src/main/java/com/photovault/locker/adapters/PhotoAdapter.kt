@@ -117,8 +117,11 @@ class PhotoAdapter(
                 
                 root.setOnLongClickListener {
                     if (!selectionMode) {
-                        // Show context menu for setting cover photo
-                        showContextMenu(photo)
+                        // Enable selection mode and select this photo
+                        enableSelectionMode()
+                        toggleSelection(photo.id)
+                        notifyItemChanged(position)
+                        onPhotoLongClick(photo)
                     }
                     true
                 }
@@ -161,6 +164,19 @@ class PhotoAdapter(
 
     fun getSelectedCount(): Int {
         return selectedPhotos.size
+    }
+    
+    fun selectAll() {
+        if (currentList.isNotEmpty()) {
+            selectedPhotos.clear()
+            selectedPhotos.addAll(currentList.map { it.id })
+            notifyDataSetChanged()
+            onPhotoLongClick(currentList[0]) // Notify to update count
+        }
+    }
+    
+    fun isAllSelected(): Boolean {
+        return currentList.isNotEmpty() && selectedPhotos.size == currentList.size
     }
     
     private fun showContextMenu(photo: Photo) {
