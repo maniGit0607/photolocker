@@ -65,11 +65,11 @@
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_marginStart="8dp"
-        android:src="@drawable/ic_info"
+        android:src="@drawable/ic_settings"
         android:tint="@color/white"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:padding="4dp"
-        android:contentDescription="Menu" />
+        android:contentDescription="Settings" />
 
 </LinearLayout>
 
