@@ -69,6 +69,13 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.PhotoVaultLocker" />
 
+        <!-- Favorites Activity -->
+        <activity
+            android:name=".activities.FavoritesActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.PhotoVaultLocker" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

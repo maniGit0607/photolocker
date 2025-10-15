@@ -12,7 +12,7 @@ import com.photovault.locker.models.Photo
 
 @Database(
     entities = [Album::class, Photo::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(DateConverter::class)
@@ -33,6 +33,13 @@ abstract class PhotoVaultDatabase : RoomDatabase() {
             }
         }
         
+        // Migration from version 2 to 3 - Add favorites field to photos table
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE photos ADD COLUMN is_favorite INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+        
         fun getDatabase(context: Context): PhotoVaultDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -40,7 +47,7 @@ abstract class PhotoVaultDatabase : RoomDatabase() {
                     PhotoVaultDatabase::class.java,
                     "photo_vault_database"
                 )
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .fallbackToDestructiveMigration()
                 .build()
                 INSTANCE = instance

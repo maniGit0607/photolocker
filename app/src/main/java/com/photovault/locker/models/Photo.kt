@@ -48,6 +48,9 @@ data class Photo(
     val isDeleted: Boolean = false,
     
     @ColumnInfo(name = "deleted_date")
-    val deletedDate: Date? = null
+    val deletedDate: Date? = null,
+    
+    @ColumnInfo(name = "is_favorite")
+    val isFavorite: Boolean = false
 )
 

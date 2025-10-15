@@ -64,5 +64,15 @@ interface PhotoDao {
     
     @Query("DELETE FROM photos WHERE is_deleted = 1")
     suspend fun permanentlyDeletePhotosInBin()
+    
+    // Favorites functionality
+    @Query("UPDATE photos SET is_favorite = :isFavorite WHERE id = :photoId")
+    suspend fun updatePhotoFavoriteStatus(photoId: Long, isFavorite: Boolean)
+    
+    @Query("SELECT * FROM photos WHERE is_favorite = 1 AND is_deleted = 0 ORDER BY imported_date DESC")
+    fun getFavoritePhotos(): LiveData<List<Photo>>
+    
+    @Query("SELECT * FROM photos WHERE is_favorite = 1 AND is_deleted = 0 ORDER BY imported_date DESC")
+    suspend fun getFavoritePhotosSync(): List<Photo>
 }
 

@@ -83,6 +83,17 @@ class PhotoViewViewModel(
         }
     }
     
+    fun toggleFavorite(photoId: Long, currentStatus: Boolean) {
+        viewModelScope.launch {
+            try {
+                photoDao.updatePhotoFavoriteStatus(photoId, !currentStatus)
+            } catch (e: Exception) {
+                android.util.Log.e("PhotoViewViewModel", "Failed to toggle favorite: ${e.message}")
+                _error.value = "Failed to toggle favorite: ${e.message}"
+            }
+        }
+    }
+    
     class Factory(
         private val application: Application,
         private val albumId: Long

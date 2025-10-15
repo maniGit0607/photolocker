@@ -55,6 +55,14 @@
                 android:text="1 of 10" />
 
             <ImageButton
+                android:id="@+id/btnFavorite"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_heart"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Add to favorites" />
+
+            <ImageButton
                 android:id="@+id/btnDelete"
                 android:layout_width="48dp"
                 android:layout_height="48dp"

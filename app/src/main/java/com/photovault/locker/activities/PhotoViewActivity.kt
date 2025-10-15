@@ -59,6 +59,10 @@ class PhotoViewActivity : AppCompatActivity() {
             finish()
         }
         
+        binding.btnFavorite.setOnClickListener {
+            toggleFavoriteForCurrentPhoto()
+        }
+        
         binding.btnDelete.setOnClickListener {
             showDeleteConfirmation()
         }
@@ -67,6 +71,7 @@ class PhotoViewActivity : AppCompatActivity() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 updatePhotoInfo(position)
+                updateFavoriteIcon(position)
             }
         })
     }
@@ -81,6 +86,7 @@ class PhotoViewActivity : AppCompatActivity() {
             if (position >= 0) {
                 binding.viewPager.setCurrentItem(position, false)
                 updatePhotoInfo(position)
+                updateFavoriteIcon(position)
             }
         }
         
@@ -117,6 +123,32 @@ class PhotoViewActivity : AppCompatActivity() {
             } else ""
             
             binding.tvPhotoInfo.text = "$formattedDate • ${String.format("%.1f MB", sizeInMB)}$dimensions"
+        }
+    }
+    
+    private fun updateFavoriteIcon(position: Int) {
+        if (position < photos.size) {
+            val photo = photos[position]
+            if (photo.isFavorite) {
+                binding.btnFavorite.setImageResource(R.drawable.ic_heart_filled)
+            } else {
+                binding.btnFavorite.setImageResource(R.drawable.ic_heart)
+            }
+        }
+    }
+    
+    private fun toggleFavoriteForCurrentPhoto() {
+        val currentPosition = binding.viewPager.currentItem
+        if (currentPosition < photos.size) {
+            val currentPhoto = photos[currentPosition]
+            viewModel.toggleFavorite(currentPhoto.id, currentPhoto.isFavorite)
+            
+            val message = if (currentPhoto.isFavorite) {
+                "Removed from favorites"
+            } else {
+                "Added to favorites"
+            }
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
     }
     

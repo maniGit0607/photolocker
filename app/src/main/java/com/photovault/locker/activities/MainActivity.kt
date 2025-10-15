@@ -139,6 +139,11 @@ class MainActivity : AppCompatActivity() {
         requestPermissionLauncher.launch(PermissionUtils.getRequiredPermissions())
     }
     
+    private fun openFavoritesActivity() {
+        val intent = Intent(this, FavoritesActivity::class.java)
+        startActivity(intent)
+    }
+    
     private fun openBinActivity() {
         val intent = Intent(this, BinActivity::class.java)
         startActivity(intent)
@@ -329,6 +334,10 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         android.util.Log.d("MainActivity", "Menu item selected: ${item.title} (ID: ${item.itemId})")
         return when (item.itemId) {
+            R.id.action_favorites -> {
+                openFavoritesActivity()
+                true
+            }
             R.id.action_bin -> {
                 openBinActivity()
                 true
