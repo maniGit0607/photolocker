@@ -62,19 +62,16 @@ class PhotoViewViewModel(
     fun deletePhoto(photo: Photo) {
         viewModelScope.launch {
             try {
-                // Get current cover photo path before deleting
+                // Get current cover photo path before moving to bin
                 val currentCoverPhotoPath = getCurrentCoverPhotoPath()
                 val isCoverPhotoBeingDeleted = currentCoverPhotoPath != null && currentCoverPhotoPath == photo.filePath
                 
                 if (isCoverPhotoBeingDeleted) {
-                    android.util.Log.d("PhotoViewViewModel", "Cover photo is being deleted: ${photo.originalName}")
+                    android.util.Log.d("PhotoViewViewModel", "Cover photo is being moved to bin: ${photo.originalName}")
                 }
                 
-                // Delete file from storage
-                fileManager.deletePhotoFromAppStorage(photo.filePath)
-                
-                // Delete from database
-                photoDao.deletePhoto(photo)
+                // Move photo to bin instead of permanently deleting
+                photoDao.movePhotoToBin(photo.id, System.currentTimeMillis())
                 
                 // If cover photo was deleted, set new cover photo
                 if (isCoverPhotoBeingDeleted) {
@@ -87,8 +84,8 @@ class PhotoViewViewModel(
                 }
                 
             } catch (e: Exception) {
-                android.util.Log.e("PhotoViewViewModel", "Failed to delete photo: ${e.message}")
-                _error.value = "Failed to delete photo: ${e.message}"
+                android.util.Log.e("PhotoViewViewModel", "Failed to move photo to bin: ${e.message}")
+                _error.value = "Failed to move photo to bin: ${e.message}"
             }
         }
     }

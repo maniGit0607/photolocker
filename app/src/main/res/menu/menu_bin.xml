@@ -7,6 +7,7 @@
         android:title="Restore"
         android:icon="@drawable/ic_check_circle"
         app:showAsAction="ifRoom"
+        app:iconTint="@color/white"
         android:enabled="false" />
 
     <item
@@ -14,6 +15,7 @@
         android:title="Delete"
         android:icon="@drawable/ic_delete"
         app:showAsAction="ifRoom"
+        app:iconTint="@color/white"
         android:enabled="false" />
 
 </menu>

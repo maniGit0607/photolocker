@@ -52,20 +52,33 @@ class BinViewModel(application: Application) : AndroidViewModel(application) {
                 _isLoading.value = true
                 android.util.Log.d("BinViewModel", "Restoring ${photoIds.size} photos from bin")
                 
-                // Get or create "Restored" album for orphaned photos
-                val restoredAlbum = getOrCreateRestoredAlbum()
                 val dummyAlbum = albumDao.getAlbumByName(Constants.DUMMY_BIN_ALBUM_NAME)
                 
-                // Check each photo and move to "Restored" album if needed
+                // First, check if there are any orphaned photos that need the "Restored" album
+                val orphanedPhotoIds = mutableListOf<Long>()
+                
                 for (photoId in photoIds) {
                     val photo = photoDao.getPhotoById(photoId)
                     if (photo != null) {
                         val album = albumDao.getAlbumById(photo.albumId)
                         
-                        // Move to "Restored" album if:
+                        // Check if photo is orphaned:
                         // 1. Album doesn't exist (null), OR
                         // 2. Album is the dummy bin album
                         if (album == null || (dummyAlbum != null && photo.albumId == dummyAlbum.id)) {
+                            orphanedPhotoIds.add(photoId)
+                        }
+                    }
+                }
+                
+                // Only create "Restored" album if there are orphaned photos
+                if (orphanedPhotoIds.isNotEmpty()) {
+                    val restoredAlbum = getOrCreateRestoredAlbum()
+                    
+                    // Move orphaned photos to "Restored" album
+                    for (photoId in orphanedPhotoIds) {
+                        val photo = photoDao.getPhotoById(photoId)
+                        if (photo != null) {
                             android.util.Log.d("BinViewModel", "Album not found or dummy album for photo ${photo.originalName}, moving to Restored album")
                             val updatedPhoto = photo.copy(albumId = restoredAlbum.id)
                             photoDao.updatePhoto(updatedPhoto)
