@@ -26,6 +26,7 @@ class PhotoViewActivity : AppCompatActivity() {
     private var initialPosition: Int = 0
     private var photos = listOf<Photo>()
     private var overlayVisible = true
+    private var isInitialLoad = true
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,15 +79,27 @@ class PhotoViewActivity : AppCompatActivity() {
     
     private fun observeData() {
         viewModel.photos.observe(this) { photosList ->
+            val currentPosition = if (!isInitialLoad) binding.viewPager.currentItem else -1
+            
             photos = photosList
             setupViewPager()
             
-            // Find the position of the selected photo
-            val position = photos.indexOfFirst { it.id == photoId }
-            if (position >= 0) {
-                binding.viewPager.setCurrentItem(position, false)
-                updatePhotoInfo(position)
-                updateFavoriteIcon(position)
+            if (isInitialLoad) {
+                // Find the position of the selected photo on initial load
+                val position = photos.indexOfFirst { it.id == photoId }
+                if (position >= 0) {
+                    binding.viewPager.setCurrentItem(position, false)
+                    updatePhotoInfo(position)
+                    updateFavoriteIcon(position)
+                }
+                isInitialLoad = false
+            } else {
+                // Preserve current position on subsequent updates (e.g., when toggling favorite)
+                if (currentPosition >= 0 && currentPosition < photos.size) {
+                    binding.viewPager.setCurrentItem(currentPosition, false)
+                    updatePhotoInfo(currentPosition)
+                    updateFavoriteIcon(currentPosition)
+                }
             }
         }
         
