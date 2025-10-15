@@ -45,12 +45,12 @@ class FavoritesActivity : AppCompatActivity() {
     private fun setupRecyclerView() {
         photoAdapter = PhotoAdapter(
             onPhotoClick = { photo, position ->
-                // For favorites, we need to open the photo in its original album context
-                // We'll navigate to PhotoViewActivity with the album context
+                // For favorites, we'll navigate to PhotoViewActivity in favorites mode
+                // so it only shows favorite photos
                 val intent = Intent(this, PhotoViewActivity::class.java).apply {
-                    putExtra("album_id", photo.albumId)
                     putExtra("photo_id", photo.id)
                     putExtra("photo_position", position)
+                    putExtra("is_favorites_mode", true)
                 }
                 startActivity(intent)
             },

@@ -14,7 +14,8 @@ import kotlinx.coroutines.launch
 
 class PhotoViewViewModel(
     application: Application,
-    private val albumId: Long
+    private val albumId: Long,
+    private val isFavoritesMode: Boolean = false
 ) : AndroidViewModel(application) {
     
     private val database = PhotoVaultDatabase.getDatabase(application)
@@ -22,16 +23,23 @@ class PhotoViewViewModel(
     private val albumDao = database.albumDao()
     private val fileManager = FileManager(application)
     
-    val photos: LiveData<List<Photo>> = photoDao.getPhotosByAlbum(albumId)
+    val photos: LiveData<List<Photo>> = if (isFavoritesMode) {
+        photoDao.getFavoritePhotos()
+    } else {
+        photoDao.getPhotosByAlbum(albumId)
+    }
     
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> = _error
     
     private suspend fun getCurrentCoverPhotoPath(): String? {
-        return albumDao.getCoverPhotoSync(albumId)
+        return if (!isFavoritesMode) albumDao.getCoverPhotoSync(albumId) else null
     }
     
     private suspend fun updateCoverPhotoAfterDeletion() {
+        // Only update cover photo if not in favorites mode
+        if (isFavoritesMode) return
+        
         try {
             // Get the first photo remaining in the album
             val firstPhoto = photoDao.getFirstPhotoInAlbum(albumId)
@@ -73,8 +81,10 @@ class PhotoViewViewModel(
                     updateCoverPhotoAfterDeletion()
                 }
                 
-                // Update album photo count
-                albumDao.updatePhotoCount(albumId)
+                // Update album photo count (only if not in favorites mode)
+                if (!isFavoritesMode) {
+                    albumDao.updatePhotoCount(albumId)
+                }
                 
             } catch (e: Exception) {
                 android.util.Log.e("PhotoViewViewModel", "Failed to delete photo: ${e.message}")
@@ -96,13 +106,14 @@ class PhotoViewViewModel(
     
     class Factory(
         private val application: Application,
-        private val albumId: Long
+        private val albumId: Long,
+        private val isFavoritesMode: Boolean = false
     ) : ViewModelProvider.Factory {
         
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(PhotoViewViewModel::class.java)) {
-                return PhotoViewViewModel(application, albumId) as T
+                return PhotoViewViewModel(application, albumId, isFavoritesMode) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

@@ -27,6 +27,7 @@ class PhotoViewActivity : AppCompatActivity() {
     private var photos = listOf<Photo>()
     private var overlayVisible = true
     private var isInitialLoad = true
+    private var isFavoritesMode = false
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,15 +44,22 @@ class PhotoViewActivity : AppCompatActivity() {
         albumId = intent.getLongExtra("album_id", -1)
         photoId = intent.getLongExtra("photo_id", -1)
         initialPosition = intent.getIntExtra("photo_position", 0)
+        isFavoritesMode = intent.getBooleanExtra("is_favorites_mode", false)
         
-        if (albumId == -1L || photoId == -1L) {
+        // If in favorites mode, albumId is not required
+        if (photoId == -1L) {
+            finish()
+            return
+        }
+        
+        if (!isFavoritesMode && albumId == -1L) {
             finish()
             return
         }
     }
     
     private fun setupViewModel() {
-        val factory = PhotoViewViewModel.Factory(application, albumId)
+        val factory = PhotoViewViewModel.Factory(application, albumId, isFavoritesMode)
         viewModel = ViewModelProvider(this, factory)[PhotoViewViewModel::class.java]
     }
     
