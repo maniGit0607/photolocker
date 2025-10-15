@@ -149,29 +149,25 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
     }
     
-    private fun openSettings() {
-        // TODO: Create SettingsActivity or show settings dialog
-        showSettingsDialog()
-    }
-    
-    private fun showSettingsDialog() {
-        val options = arrayOf("Change Password", "About")
+    private fun showSettingsPopupMenu(anchorView: android.view.View) {
+        val popupMenu = android.widget.PopupMenu(this, anchorView)
+        popupMenu.menuInflater.inflate(R.menu.settings_menu, popupMenu.menu)
         
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Settings")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> {
-                        // Change Password
-                        showChangePasswordDialog()
-                    }
-                    1 -> {
-                        // About
-                        showAboutDialog()
-                    }
+        popupMenu.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_change_password -> {
+                    showChangePasswordDialog()
+                    true
                 }
+                R.id.action_about -> {
+                    showAboutDialog()
+                    true
+                }
+                else -> false
             }
-            .show()
+        }
+        
+        popupMenu.show()
     }
     
     private fun showChangePasswordDialog() {
@@ -409,7 +405,14 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.action_settings -> {
-                openSettings()
+                // Find the settings menu item view to anchor the popup
+                val view = findViewById<android.view.View>(R.id.action_settings)
+                if (view != null) {
+                    showSettingsPopupMenu(view)
+                } else {
+                    // Fallback to toolbar if view not found
+                    showSettingsPopupMenu(binding.toolbar)
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)
