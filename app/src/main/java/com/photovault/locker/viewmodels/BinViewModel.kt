@@ -13,6 +13,7 @@ import com.photovault.locker.models.Photo
 import com.photovault.locker.utils.FileManager
 import kotlinx.coroutines.launch
 import java.io.File
+import java.util.Date
 
 class BinViewModel(application: Application) : AndroidViewModel(application) {
     
@@ -50,20 +51,35 @@ class BinViewModel(application: Application) : AndroidViewModel(application) {
                 _isLoading.value = true
                 android.util.Log.d("BinViewModel", "Restoring ${photoIds.size} photos from bin")
                 
-                // Restore photos in database
+                // Get or create "Restored" album for orphaned photos
+                val restoredAlbum = getOrCreateRestoredAlbum()
+                
+                // Check each photo and move to "Restored" album if original album doesn't exist
+                for (photoId in photoIds) {
+                    val photo = photoDao.getPhotoById(photoId)
+                    if (photo != null) {
+                        val album = albumDao.getAlbumById(photo.albumId)
+                        if (album == null) {
+                            // Original album doesn't exist, move to "Restored" album
+                            android.util.Log.d("BinViewModel", "Album not found for photo ${photo.originalName}, moving to Restored album")
+                            val updatedPhoto = photo.copy(albumId = restoredAlbum.id)
+                            photoDao.updatePhoto(updatedPhoto)
+                        }
+                    }
+                }
+                
+                // Restore photos in database (set is_deleted = 0)
                 photoDao.restorePhotosFromBin(photoIds)
 
-                // Fetch each restored photo's albumId
+                // Fetch each restored photo's albumId and update album info
                 val albumIds = photoIds.mapNotNull { photoId ->
                     photoDao.getPhotoById(photoId)?.albumId
                 }.distinct()
 
-                for (albumId in albumIds)
-                {
+                for (albumId in albumIds) {
                     albumDao.updatePhotoCount(albumId)
                     val album = albumDao.getAlbumById(albumId)
-                    if(album?.coverPhotoPath == null)
-                    {
+                    if (album?.coverPhotoPath == null) {
                         albumDao.updateCoverPhoto(albumId, photoDao.getFirstPhotoInAlbum(albumId)?.filePath)
                     }
                 }
@@ -77,6 +93,25 @@ class BinViewModel(application: Application) : AndroidViewModel(application) {
                 _isLoading.value = false
             }
         }
+    }
+    
+    private suspend fun getOrCreateRestoredAlbum(): Album {
+        val restoredAlbumName = "Restored"
+        var restoredAlbum = albumDao.getAlbumByName(restoredAlbumName)
+        
+        if (restoredAlbum == null) {
+            // Create "Restored" album
+            val newAlbum = Album(
+                name = restoredAlbumName,
+                createdDate = Date()
+            )
+            val albumId = albumDao.insertAlbum(newAlbum)
+            restoredAlbum = albumDao.getAlbumById(albumId)
+                ?: throw Exception("Failed to create Restored album")
+            android.util.Log.d("BinViewModel", "Created 'Restored' album with id: ${restoredAlbum.id}")
+        }
+        
+        return restoredAlbum
     }
     
     fun permanentlyDeletePhotos(photoIds: List<Long>) {

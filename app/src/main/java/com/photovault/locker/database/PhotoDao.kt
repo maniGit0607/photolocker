@@ -34,7 +34,7 @@ interface PhotoDao {
     @Query("DELETE FROM photos WHERE id = :photoId")
     suspend fun deletePhotoById(photoId: Long)
     
-    @Query("DELETE FROM photos WHERE album_id = :albumId")
+    @Query("DELETE FROM photos WHERE album_id = :albumId AND is_deleted = 0")
     suspend fun deletePhotosByAlbum(albumId: Long)
     
     @Query("SELECT * FROM photos WHERE album_id = :albumId AND is_deleted = 0 ORDER BY imported_date ASC LIMIT 1")
