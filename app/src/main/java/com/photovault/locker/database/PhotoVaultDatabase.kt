@@ -12,7 +12,7 @@ import com.photovault.locker.models.Photo
 
 @Database(
     entities = [Album::class, Photo::class],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(DateConverter::class)
@@ -40,6 +40,50 @@ abstract class PhotoVaultDatabase : RoomDatabase() {
             }
         }
         
+        // Migration from version 3 to 4 - Change foreign key from CASCADE to NO_ACTION
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // SQLite doesn't support modifying foreign keys directly
+                // We need to recreate the table
+                
+                // Create new table with updated foreign key
+                database.execSQL("""
+                    CREATE TABLE photos_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        album_id INTEGER NOT NULL,
+                        file_path TEXT NOT NULL,
+                        original_name TEXT NOT NULL,
+                        imported_date INTEGER NOT NULL,
+                        file_size INTEGER NOT NULL,
+                        width INTEGER NOT NULL DEFAULT 0,
+                        height INTEGER NOT NULL DEFAULT 0,
+                        is_deleted INTEGER NOT NULL DEFAULT 0,
+                        deleted_date INTEGER,
+                        is_favorite INTEGER NOT NULL DEFAULT 0,
+                        FOREIGN KEY(album_id) REFERENCES albums(id) ON DELETE NO ACTION
+                    )
+                """.trimIndent())
+                
+                // Copy data from old table to new table
+                database.execSQL("""
+                    INSERT INTO photos_new (id, album_id, file_path, original_name, imported_date, 
+                        file_size, width, height, is_deleted, deleted_date, is_favorite)
+                    SELECT id, album_id, file_path, original_name, imported_date, 
+                        file_size, width, height, is_deleted, deleted_date, is_favorite
+                    FROM photos
+                """.trimIndent())
+                
+                // Drop old table
+                database.execSQL("DROP TABLE photos")
+                
+                // Rename new table to photos
+                database.execSQL("ALTER TABLE photos_new RENAME TO photos")
+                
+                // Recreate index
+                database.execSQL("CREATE INDEX index_photos_album_id ON photos(album_id)")
+            }
+        }
+        
         fun getDatabase(context: Context): PhotoVaultDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -47,7 +91,7 @@ abstract class PhotoVaultDatabase : RoomDatabase() {
                     PhotoVaultDatabase::class.java,
                     "photo_vault_database"
                 )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .fallbackToDestructiveMigration()
                 .build()
                 INSTANCE = instance

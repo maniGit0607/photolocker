@@ -14,7 +14,7 @@ import java.util.Date
             entity = Album::class,
             parentColumns = arrayOf("id"),
             childColumns = arrayOf("album_id"),
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.NO_ACTION
         )
     ],
     indices = [Index(value = ["album_id"])]

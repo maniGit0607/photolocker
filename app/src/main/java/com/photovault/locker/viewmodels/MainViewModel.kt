@@ -51,7 +51,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun deleteAlbum(album: Album) {
         viewModelScope.launch {
             try {
-                // Delete all photos in the album
+                // Get or create "Restored" album for bin photos
+                val restoredAlbum = getOrCreateRestoredAlbum()
+                
+                // Move any photos in bin from this album to "Restored" album
+                // This prevents foreign key constraint errors
+                val binPhotos = photoDao.getAllPhotosByAlbumSync(album.id).filter { it.isDeleted }
+                for (photo in binPhotos) {
+                    val updatedPhoto = photo.copy(albumId = restoredAlbum.id)
+                    photoDao.updatePhoto(updatedPhoto)
+                }
+                
+                // Delete all active (non-bin) photos in the album
                 photoDao.deletePhotosByAlbum(album.id)
                 
                 // Delete album directory from file system
@@ -63,6 +74,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _error.value = "Failed to delete album: ${e.message}"
             }
         }
+    }
+    
+    private suspend fun getOrCreateRestoredAlbum(): Album {
+        val restoredAlbumName = "Restored"
+        var restoredAlbum = albumDao.getAlbumByName(restoredAlbumName)
+        
+        if (restoredAlbum == null) {
+            // Create "Restored" album
+            val newAlbum = Album(
+                name = restoredAlbumName,
+                createdDate = Date()
+            )
+            val albumId = albumDao.insertAlbum(newAlbum)
+            restoredAlbum = albumDao.getAlbumById(albumId)
+                ?: throw Exception("Failed to create Restored album")
+        }
+        
+        return restoredAlbum
     }
     
     fun updateAlbumPhotoCounts() {

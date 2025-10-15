@@ -13,6 +13,9 @@ interface PhotoDao {
     @Query("SELECT * FROM photos WHERE album_id = :albumId AND is_deleted = 0 ORDER BY imported_date DESC")
     suspend fun getPhotosByAlbumSync(albumId: Long): List<Photo>
     
+    @Query("SELECT * FROM photos WHERE album_id = :albumId ORDER BY imported_date DESC")
+    suspend fun getAllPhotosByAlbumSync(albumId: Long): List<Photo>
+    
     @Query("SELECT * FROM photos WHERE id = :photoId")
     suspend fun getPhotoById(photoId: Long): Photo?
     
