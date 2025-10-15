@@ -162,7 +162,8 @@ class AlbumViewActivity : AppCompatActivity() {
                     hideActionButtons()
                 }
             },
-            context = this
+            context = this,
+            true
         )
         
         // Initialize grid layout manager
@@ -614,7 +615,7 @@ class AlbumViewActivity : AppCompatActivity() {
             .setMessage(message)
             .setPositiveButton("Delete") { _, _ ->
                 // Check permissions before attempting deletion
-                if (PermissionUtils.hasAllStoragePermissions(this)) {
+                if (PermissionUtils.hasStoragePermissions(this)) {
                     // Use the stored gallery photos for deletion
                     if (importedGalleryPhotos.isNotEmpty()) {
                         viewModel.deleteImportedPhotosFromGallery(importedGalleryPhotos)

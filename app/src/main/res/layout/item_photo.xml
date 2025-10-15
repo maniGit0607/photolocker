@@ -29,6 +29,13 @@
             android:background="@color/selection_overlay"
             android:visibility="gone" />
 
+        <View
+            android:id="@+id/binOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/bin_overlay"
+            android:visibility="gone" />
+
         <!-- Selection Check -->
         <ImageView
             android:id="@+id/ivSelection"

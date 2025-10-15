@@ -59,40 +59,10 @@ class FileManager(private val context: Context) {
                 return true
             } else {
                 Log.w(TAG, "Standard deletion failed, trying alternative method: $uri")
-                // Try alternative deletion method
-                return tryAlternativeDeletion(uri)
             }
+            false
         } catch (e: SecurityException) {
             Log.e(TAG, "Permission denied when deleting photo from gallery: $uri", e)
-            // Try alternative deletion method as fallback
-            tryAlternativeDeletion(uri)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error deleting photo from gallery: $uri", e)
-            // Try alternative deletion method as fallback
-            tryAlternativeDeletion(uri)
-        }
-    }
-    
-    private fun tryAlternativeDeletion(uri: Uri): Boolean {
-        return try {
-            // Try using MediaStore.Images.Media.EXTERNAL_CONTENT_URI with ID
-            val id = uri.lastPathSegment?.toLongOrNull()
-            if (id != null) {
-                val mediaUri = Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id.toString())
-                val rowsDeleted = context.contentResolver.delete(mediaUri, null, null)
-                val success = rowsDeleted > 0
-                if (success) {
-                    Log.d(TAG, "Successfully deleted photo using alternative method: $uri")
-                } else {
-                    Log.w(TAG, "Alternative deletion also failed: $uri")
-                }
-                success
-            } else {
-                Log.w(TAG, "Could not extract ID from URI: $uri")
-                false
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Alternative deletion method also failed: $uri", e)
             false
         }
     }

@@ -49,21 +49,9 @@ class BinActivity : AppCompatActivity() {
         photoAdapter = PhotoAdapter(
             onPhotoClick = { photo, position ->
                 // No photo view for bin - just enable selection mode
-                if (!photoAdapter.isSelectionMode()) {
-                    photoAdapter.enableSelectionMode()
-                    toggleSelection(photo.id)
-                    updateSelectionCount()
-                } else {
-                    toggleSelection(photo.id)
-                    updateSelectionCount()
-                }
             },
             onPhotoLongClick = { photo ->
                 // Handle long click for selection mode
-                if (!photoAdapter.isSelectionMode()) {
-                    photoAdapter.enableSelectionMode()
-                }
-                toggleSelection(photo.id)
                 updateSelectionCount()
             },
             onSetCoverPhoto = { photo ->
@@ -72,18 +60,14 @@ class BinActivity : AppCompatActivity() {
             onSelectionModeChanged = { isSelectionMode ->
                 // Handle selection mode changes
                 updateSelectionCount()
-                if (isSelectionMode) {
-                    showActionButtons()
-                } else {
-                    hideActionButtons()
-                }
                 invalidateOptionsMenu()
             },
-            context = this
+            context = this,
+            false
         )
         
         // Initialize grid layout manager
-        gridLayoutManager = GridLayoutManager(this, 3) // Fixed 3 columns
+        gridLayoutManager = GridLayoutManager(this, 5) // Fixed 5 columns
         
         binding.rvPhotos.apply {
             layoutManager = gridLayoutManager
@@ -140,16 +124,6 @@ class BinActivity : AppCompatActivity() {
     private fun toggleSelection(photoId: Long) {
         // This will be handled by the PhotoAdapter's internal selection logic
         // We just need to update the UI after the adapter handles it
-    }
-    
-    private fun showActionButtons() {
-        val selectionButtons = findViewById<android.widget.LinearLayout>(R.id.selectionActionButtons)
-        selectionButtons.visibility = android.view.View.VISIBLE
-    }
-    
-    private fun hideActionButtons() {
-        val selectionButtons = findViewById<android.widget.LinearLayout>(R.id.selectionActionButtons)
-        selectionButtons.visibility = android.view.View.GONE
     }
     
     private fun updateSelectionCount() {

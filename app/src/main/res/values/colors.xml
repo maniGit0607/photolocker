@@ -33,5 +33,8 @@
     <!-- Photo Selection -->
     <color name="selection_overlay">#000000F3</color>
     <color name="selected_border">#FF2196F3</color>
+
+    <!-- Bin Photo Color -->
+    <color name="bin_overlay">#4DF0F0F3</color>
 </resources>
 

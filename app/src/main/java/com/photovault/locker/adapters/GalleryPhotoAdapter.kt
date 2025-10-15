@@ -78,15 +78,6 @@ class GalleryPhotoAdapter(
         return currentList.filter { selectedPhotos.contains(it.id) }
     }
 
-    fun getSelectedCount(): Int {
-        return selectedPhotos.size
-    }
-
-    fun clearSelections() {
-        selectedPhotos.clear()
-        notifyDataSetChanged()
-    }
-
     private class GalleryPhotoDiffCallback : DiffUtil.ItemCallback<GalleryPhoto>() {
         override fun areItemsTheSame(oldItem: GalleryPhoto, newItem: GalleryPhoto): Boolean {
             return oldItem.id == newItem.id

@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.photovault.locker.database.PhotoVaultDatabase
+import com.photovault.locker.models.Album
 import com.photovault.locker.models.Photo
 import com.photovault.locker.utils.FileManager
 import kotlinx.coroutines.launch
@@ -17,6 +18,7 @@ class BinViewModel(application: Application) : AndroidViewModel(application) {
     
     private val database = PhotoVaultDatabase.getDatabase(application)
     private val photoDao = database.photoDao()
+    private val albumDao = database.albumDao()
     private val fileManager = FileManager(application)
     
     val deletedPhotos: LiveData<List<Photo>> = photoDao.getDeletedPhotos()
@@ -50,6 +52,21 @@ class BinViewModel(application: Application) : AndroidViewModel(application) {
                 
                 // Restore photos in database
                 photoDao.restorePhotosFromBin(photoIds)
+
+                // Fetch each restored photo's albumId
+                val albumIds = photoIds.mapNotNull { photoId ->
+                    photoDao.getPhotoById(photoId)?.albumId
+                }.distinct()
+
+                for (albumId in albumIds)
+                {
+                    albumDao.updatePhotoCount(albumId)
+                    val album = albumDao.getAlbumById(albumId)
+                    if(album?.coverPhotoPath == null)
+                    {
+                        albumDao.updateCoverPhoto(albumId, photoDao.getFirstPhotoInAlbum(albumId)?.filePath)
+                    }
+                }
                 
                 android.util.Log.d("BinViewModel", "Successfully restored ${photoIds.size} photos")
                 

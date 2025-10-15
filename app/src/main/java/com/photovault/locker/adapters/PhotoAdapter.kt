@@ -17,7 +17,8 @@ class PhotoAdapter(
     private val onPhotoLongClick: (Photo) -> Unit,
     private val onSetCoverPhoto: (Photo) -> Unit,
     private val onSelectionModeChanged: (Boolean) -> Unit,
-    private val context: android.content.Context
+    private val context: android.content.Context,
+    private val showContextMenu: Boolean
 ) : ListAdapter<Photo, PhotoAdapter.PhotoViewHolder>(PhotoDiffCallback()) {
 
     override fun submitList(list: List<Photo>?, commitCallback: Runnable?) {
@@ -95,11 +96,14 @@ class PhotoAdapter(
 
                 // Handle selection mode
                 val isSelected = selectedPhotos.contains(photo.id)
+                if(!showContextMenu) {
+                    binOverlay.visibility = View.VISIBLE
+                } else {
+                    binOverlay.visibility = View.GONE
+                }
                 if (selectionMode) {
-                    selectionOverlay.visibility = if (isSelected) View.VISIBLE else View.GONE
                     ivSelection.visibility = if (isSelected) View.VISIBLE else View.GONE
                 } else {
-                    selectionOverlay.visibility = View.GONE
                     ivSelection.visibility = View.GONE
                 }
 
