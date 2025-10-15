@@ -7,16 +7,16 @@ import com.photovault.locker.models.Album
 @Dao
 interface AlbumDao {
     
-    @Query("SELECT * FROM albums ORDER BY created_date DESC")
+    @Query("SELECT * FROM albums WHERE name != '__DUMMY_BIN_ALBUM__' ORDER BY created_date DESC")
     fun getAllAlbums(): LiveData<List<Album>>
     
-    @Query("SELECT * FROM albums ORDER BY created_date DESC")
+    @Query("SELECT * FROM albums WHERE name != '__DUMMY_BIN_ALBUM__' ORDER BY created_date DESC")
     suspend fun getAllAlbumsSync(): List<Album>
     
-    @Query("SELECT * FROM albums WHERE id != :excludeAlbumId ORDER BY created_date DESC")
+    @Query("SELECT * FROM albums WHERE id != :excludeAlbumId AND name != '__DUMMY_BIN_ALBUM__' ORDER BY created_date DESC")
     fun getAllAlbumsExcept(excludeAlbumId: Long): LiveData<List<Album>>
     
-    @Query("SELECT * FROM albums WHERE id != :excludeAlbumId ORDER BY created_date DESC")
+    @Query("SELECT * FROM albums WHERE id != :excludeAlbumId AND name != '__DUMMY_BIN_ALBUM__' ORDER BY created_date DESC")
     suspend fun getAllAlbumsExceptSync(excludeAlbumId: Long): List<Album>
     
     @Query("SELECT * FROM albums WHERE id = :albumId")

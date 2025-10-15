@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.photovault.locker.database.PhotoVaultDatabase
 import com.photovault.locker.models.Album
 import com.photovault.locker.models.Photo
+import com.photovault.locker.utils.Constants
 import com.photovault.locker.utils.FileManager
 import kotlinx.coroutines.launch
 import java.io.File
@@ -53,15 +54,19 @@ class BinViewModel(application: Application) : AndroidViewModel(application) {
                 
                 // Get or create "Restored" album for orphaned photos
                 val restoredAlbum = getOrCreateRestoredAlbum()
+                val dummyAlbum = albumDao.getAlbumByName(Constants.DUMMY_BIN_ALBUM_NAME)
                 
-                // Check each photo and move to "Restored" album if original album doesn't exist
+                // Check each photo and move to "Restored" album if needed
                 for (photoId in photoIds) {
                     val photo = photoDao.getPhotoById(photoId)
                     if (photo != null) {
                         val album = albumDao.getAlbumById(photo.albumId)
-                        if (album == null) {
-                            // Original album doesn't exist, move to "Restored" album
-                            android.util.Log.d("BinViewModel", "Album not found for photo ${photo.originalName}, moving to Restored album")
+                        
+                        // Move to "Restored" album if:
+                        // 1. Album doesn't exist (null), OR
+                        // 2. Album is the dummy bin album
+                        if (album == null || (dummyAlbum != null && photo.albumId == dummyAlbum.id)) {
+                            android.util.Log.d("BinViewModel", "Album not found or dummy album for photo ${photo.originalName}, moving to Restored album")
                             val updatedPhoto = photo.copy(albumId = restoredAlbum.id)
                             photoDao.updatePhoto(updatedPhoto)
                         }
@@ -77,10 +82,13 @@ class BinViewModel(application: Application) : AndroidViewModel(application) {
                 }.distinct()
 
                 for (albumId in albumIds) {
-                    albumDao.updatePhotoCount(albumId)
-                    val album = albumDao.getAlbumById(albumId)
-                    if (album?.coverPhotoPath == null) {
-                        albumDao.updateCoverPhoto(albumId, photoDao.getFirstPhotoInAlbum(albumId)?.filePath)
+                    // Skip updating dummy album
+                    if (dummyAlbum == null || albumId != dummyAlbum.id) {
+                        albumDao.updatePhotoCount(albumId)
+                        val album = albumDao.getAlbumById(albumId)
+                        if (album?.coverPhotoPath == null) {
+                            albumDao.updateCoverPhoto(albumId, photoDao.getFirstPhotoInAlbum(albumId)?.filePath)
+                        }
                     }
                 }
                 
@@ -96,13 +104,12 @@ class BinViewModel(application: Application) : AndroidViewModel(application) {
     }
     
     private suspend fun getOrCreateRestoredAlbum(): Album {
-        val restoredAlbumName = "Restored"
-        var restoredAlbum = albumDao.getAlbumByName(restoredAlbumName)
+        var restoredAlbum = albumDao.getAlbumByName(Constants.RESTORED_ALBUM_NAME)
         
         if (restoredAlbum == null) {
             // Create "Restored" album
             val newAlbum = Album(
-                name = restoredAlbumName,
+                name = Constants.RESTORED_ALBUM_NAME,
                 createdDate = Date()
             )
             val albumId = albumDao.insertAlbum(newAlbum)

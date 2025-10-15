@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.photovault.locker.database.PhotoVaultDatabase
 import com.photovault.locker.models.Album
+import com.photovault.locker.utils.Constants
 import com.photovault.locker.utils.FileManager
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -52,9 +53,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 // Delete all active (non-bin) photos in the album
-                // Bin photos remain with their album_id, but album won't exist
-                // They will be moved to "Restored" album when restored
                 photoDao.deletePhotosByAlbum(album.id)
+                
+                // Get or create dummy album for bin photos
+                val dummyAlbum = getOrCreateDummyAlbum()
+                
+                // Move any remaining bin photos to dummy album to avoid foreign key constraint
+                val binPhotos = photoDao.getAllPhotosByAlbumSync(album.id).filter { it.isDeleted }
+                for (photo in binPhotos) {
+                    val updatedPhoto = photo.copy(albumId = dummyAlbum.id)
+                    photoDao.updatePhoto(updatedPhoto)
+                }
                 
                 // Delete album directory from file system
                 fileManager.deleteAlbumDirectory(album.name)
@@ -65,6 +74,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _error.value = "Failed to delete album: ${e.message}"
             }
         }
+    }
+    
+    private suspend fun getOrCreateDummyAlbum(): Album {
+        var dummyAlbum = albumDao.getAlbumByName(Constants.DUMMY_BIN_ALBUM_NAME)
+        
+        if (dummyAlbum == null) {
+            // Create dummy album
+            val newAlbum = Album(
+                name = Constants.DUMMY_BIN_ALBUM_NAME,
+                createdDate = Date()
+            )
+            val albumId = albumDao.insertAlbum(newAlbum)
+            dummyAlbum = albumDao.getAlbumById(albumId)
+                ?: throw Exception("Failed to create dummy album")
+        }
+        
+        return dummyAlbum
     }
     
     fun updateAlbumPhotoCounts() {
