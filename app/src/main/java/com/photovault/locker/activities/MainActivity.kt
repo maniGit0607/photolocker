@@ -155,30 +155,96 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun showSettingsDialog() {
-        val options = arrayOf("Change Password", "About", "Check Permissions")
+        val options = arrayOf("Change Password", "About")
         
-        androidx.appcompat.app.AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Settings")
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> {
                         // Change Password
-                        Toast.makeText(this, "Change password functionality", Toast.LENGTH_SHORT).show()
+                        showChangePasswordDialog()
                     }
                     1 -> {
                         // About
-                        Toast.makeText(this, "PhotoVault Locker v1.0", Toast.LENGTH_SHORT).show()
-                    }
-                    2 -> {
-                        // Check Permissions
-                        if (PermissionUtils.hasStoragePermissions(this)) {
-                            Toast.makeText(this, "Storage permissions already granted", Toast.LENGTH_SHORT).show()
-                        } else {
-                            requestPermissions()
-                        }
+                        showAboutDialog()
                     }
                 }
             }
+            .show()
+    }
+    
+    private fun showChangePasswordDialog() {
+        val dialogBinding = com.photovault.locker.databinding.DialogChangePasswordBinding.inflate(layoutInflater)
+        
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogBinding.root)
+            .create()
+        
+        dialogBinding.btnChange.setOnClickListener {
+            val currentPassword = dialogBinding.etCurrentPassword.text.toString()
+            val newPassword = dialogBinding.etNewPassword.text.toString()
+            val confirmPassword = dialogBinding.etConfirmPassword.text.toString()
+            
+            // Clear previous errors
+            dialogBinding.tilCurrentPassword.error = null
+            dialogBinding.tilNewPassword.error = null
+            dialogBinding.tilConfirmPassword.error = null
+            
+            // Validate inputs
+            if (currentPassword.isEmpty()) {
+                dialogBinding.tilCurrentPassword.error = "Enter current password"
+                return@setOnClickListener
+            }
+            
+            if (newPassword.isEmpty()) {
+                dialogBinding.tilNewPassword.error = "Enter new password"
+                return@setOnClickListener
+            }
+            
+            if (newPassword.length < 4) {
+                dialogBinding.tilNewPassword.error = "Password must be at least 4 characters"
+                return@setOnClickListener
+            }
+            
+            if (confirmPassword.isEmpty()) {
+                dialogBinding.tilConfirmPassword.error = "Confirm your new password"
+                return@setOnClickListener
+            }
+            
+            if (newPassword != confirmPassword) {
+                dialogBinding.tilConfirmPassword.error = "Passwords do not match"
+                return@setOnClickListener
+            }
+            
+            // Attempt to change password
+            val passwordManager = com.photovault.locker.utils.PasswordManager(this)
+            val success = passwordManager.changePassword(currentPassword, newPassword)
+            
+            if (success) {
+                dialog.dismiss()
+                MaterialAlertDialogBuilder(this)
+                    .setTitle("Success")
+                    .setMessage("Your password has been changed successfully")
+                    .setPositiveButton("OK", null)
+                    .show()
+            } else {
+                dialogBinding.tilCurrentPassword.error = "Current password is incorrect"
+            }
+        }
+        
+        dialogBinding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        dialog.show()
+    }
+    
+    private fun showAboutDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("About PhotoVault Locker")
+            .setMessage("PhotoVault Locker\nVersion 1.0\n\nA secure photo vault application to keep your photos private and protected.")
+            .setPositiveButton("OK", null)
             .show()
     }
     
