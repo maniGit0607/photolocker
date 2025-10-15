@@ -238,20 +238,59 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
     
+    private fun showRenameAlbumDialog(album: Album) {
+        val dialogBinding = DialogCreateAlbumBinding.inflate(layoutInflater)
+        
+        // Pre-fill with current album name
+        dialogBinding.etAlbumName.setText(album.name)
+        dialogBinding.etAlbumName.setSelection(album.name.length) // Place cursor at end
+        dialogBinding.btnCreate.text = "Rename"
+        
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogBinding.root)
+            .create()
+        
+        dialogBinding.btnCreate.setOnClickListener {
+            val newName = dialogBinding.etAlbumName.text.toString().trim()
+            
+            if (newName.isEmpty()) {
+                dialogBinding.tilAlbumName.error = getString(R.string.album_name_required)
+                return@setOnClickListener
+            }
+            
+            if (newName == album.name) {
+                // Name hasn't changed
+                dialog.dismiss()
+                return@setOnClickListener
+            }
+            
+            viewModel.renameAlbum(album, newName) { success ->
+                if (success) {
+                    dialog.dismiss()
+                    Toast.makeText(this, "Album renamed successfully", Toast.LENGTH_SHORT).show()
+                } else {
+                    dialogBinding.tilAlbumName.error = getString(R.string.album_exists)
+                }
+            }
+        }
+        
+        dialogBinding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        dialog.show()
+    }
+    
     private fun showAlbumOptionsDialog(album: Album) {
-        val options = arrayOf("Open Album", "Delete Album")
+        val options = arrayOf("Rename Album", "Delete Album")
         
         MaterialAlertDialogBuilder(this)
             .setTitle(album.name)
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> {
-                        // Open Album
-                        val intent = Intent(this, AlbumViewActivity::class.java).apply {
-                            putExtra("album_id", album.id)
-                            putExtra("album_name", album.name)
-                        }
-                        startActivity(intent)
+                        // Rename Album
+                        showRenameAlbumDialog(album)
                     }
                     1 -> {
                         // Delete Album

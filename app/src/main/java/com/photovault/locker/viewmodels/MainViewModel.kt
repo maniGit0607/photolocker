@@ -83,5 +83,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+    
+    fun renameAlbum(album: Album, newName: String, callback: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                // Check if an album with the new name already exists
+                val existingAlbum = albumDao.getAlbumByName(newName)
+                if (existingAlbum != null && existingAlbum.id != album.id) {
+                    callback(false)
+                    return@launch
+                }
+                
+                // Update the album with the new name
+                val updatedAlbum = album.copy(name = newName)
+                albumDao.updateAlbum(updatedAlbum)
+                callback(true)
+            } catch (e: Exception) {
+                _error.value = "Failed to rename album: ${e.message}"
+                callback(false)
+            }
+        }
+    }
 }
 
