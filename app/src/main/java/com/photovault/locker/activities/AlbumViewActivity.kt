@@ -531,49 +531,82 @@ class AlbumViewActivity : AppCompatActivity() {
                             continue
                         }
                         
-                        // Get the Pictures directory
-                        val picturesDir = android.os.Environment.getExternalStoragePublicDirectory(
-                            android.os.Environment.DIRECTORY_PICTURES
-                        )
-                        val photovaultDir = java.io.File(picturesDir, "PhotoVault")
-                        if (!photovaultDir.exists()) {
-                            photovaultDir.mkdirs()
+                        // Determine MIME type from file extension
+                        val mimeType = when (photo.originalName.substringAfterLast(".").lowercase()) {
+                            "jpg", "jpeg" -> "image/jpeg"
+                            "png" -> "image/png"
+                            "gif" -> "image/gif"
+                            "webp" -> "image/webp"
+                            else -> "image/*"
                         }
                         
-                        // Create destination file with original name
-                        var destFile = java.io.File(photovaultDir, photo.originalName)
-                        var counter = 1
-                        while (destFile.exists()) {
-                            val nameWithoutExt = photo.originalName.substringBeforeLast(".")
-                            val ext = photo.originalName.substringAfterLast(".")
-                            destFile = java.io.File(photovaultDir, "${nameWithoutExt}_$counter.$ext")
-                            counter++
-                        }
-                        
-                        // Copy the file
-                        sourceFile.copyTo(destFile, overwrite = false)
-                        
-                        // Add to media store so it appears in gallery
-                        val values = android.content.ContentValues().apply {
-                            put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, destFile.name)
-                            put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/*")
-                            put(android.provider.MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000)
-                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                                put(android.provider.MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                            // Android Q+ (API 29+): Use MediaStore with scoped storage
+                            val values = android.content.ContentValues().apply {
+                                put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, photo.originalName)
+                                put(android.provider.MediaStore.Images.Media.MIME_TYPE, mimeType)
                                 put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, "Pictures/PhotoVault")
-                            } else {
-                                put(android.provider.MediaStore.Images.Media.DATA, destFile.absolutePath)
+                                put(android.provider.MediaStore.Images.Media.IS_PENDING, 1)
                             }
+                            
+                            val uri = contentResolver.insert(
+                                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                values
+                            )
+                            
+                            if (uri != null) {
+                                contentResolver.openOutputStream(uri)?.use { outputStream ->
+                                    sourceFile.inputStream().use { inputStream ->
+                                        inputStream.copyTo(outputStream)
+                                    }
+                                }
+                                
+                                // Mark the file as ready
+                                values.clear()
+                                values.put(android.provider.MediaStore.Images.Media.IS_PENDING, 0)
+                                contentResolver.update(uri, values, null, null)
+                                
+                                successCount++
+                            } else {
+                                failureCount++
+                            }
+                        } else {
+                            // Pre-Android Q: Direct file copy + MediaScanner
+                            val picturesDir = android.os.Environment.getExternalStoragePublicDirectory(
+                                android.os.Environment.DIRECTORY_PICTURES
+                            )
+                            val photovaultDir = java.io.File(picturesDir, "PhotoVault")
+                            if (!photovaultDir.exists()) {
+                                photovaultDir.mkdirs()
+                            }
+                            
+                            // Create destination file with original name
+                            var destFile = java.io.File(photovaultDir, photo.originalName)
+                            var counter = 1
+                            while (destFile.exists()) {
+                                val nameWithoutExt = photo.originalName.substringBeforeLast(".")
+                                val ext = photo.originalName.substringAfterLast(".")
+                                destFile = java.io.File(photovaultDir, "${nameWithoutExt}_$counter.$ext")
+                                counter++
+                            }
+                            
+                            // Copy the file
+                            sourceFile.copyTo(destFile, overwrite = false)
+                            
+                            // Trigger MediaScanner to make it visible in gallery
+                            android.media.MediaScannerConnection.scanFile(
+                                this@AlbumViewActivity,
+                                arrayOf(destFile.absolutePath),
+                                arrayOf(mimeType)
+                            ) { path, uri ->
+                                android.util.Log.d("AlbumViewActivity", "Media scan completed for: $path")
+                            }
+                            
+                            successCount++
                         }
-                        
-                        contentResolver.insert(
-                            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                            values
-                        )
-                        
-                        successCount++
                     } catch (e: Exception) {
                         android.util.Log.e("AlbumViewActivity", "Failed to export photo: ${e.message}")
+                        e.printStackTrace()
                         failureCount++
                     }
                 }
