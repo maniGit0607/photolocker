@@ -354,10 +354,14 @@ class PhotoImportActivity : AppCompatActivity() {
     }
     
     private fun setupAds() {
-        // Initialize AdMob and load rewarded ad
+        // Initialize AdMob
         AdManager.initialize(this) {
-            // Load rewarded ad after initialization
-            loadRewardedAd()
+            // Check if it's time to show ad based on frequency (every 3rd import)
+            if (AdManager.shouldShowPhotoImportAd(this)) {
+                loadRewardedAd()
+            } else {
+                hasShownAdOnEntry = true // Skip ad this time
+            }
         }
     }
     

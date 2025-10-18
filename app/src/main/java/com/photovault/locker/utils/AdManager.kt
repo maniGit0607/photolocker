@@ -123,11 +123,32 @@ object AdManager {
     }
     
     /**
+     * Check if it's time to show photo import ad based on frequency
+     */
+    fun shouldShowPhotoImportAd(context: Context): Boolean {
+        val prefs = context.getSharedPreferences("ad_prefs", Context.MODE_PRIVATE)
+        val currentCount = prefs.getInt(Constants.PREF_PHOTO_IMPORT_COUNT, 0)
+        val newCount = currentCount + 1
+        
+        prefs.edit().putInt(Constants.PREF_PHOTO_IMPORT_COUNT, newCount).apply()
+        
+        return newCount % Constants.PHOTO_IMPORT_AD_FREQUENCY == 0
+    }
+    
+    /**
      * Reset album view count
      */
     fun resetAlbumViewCount(context: Context) {
         val prefs = context.getSharedPreferences("ad_prefs", Context.MODE_PRIVATE)
         prefs.edit().putInt(Constants.PREF_ALBUM_VIEW_COUNT, 0).apply()
+    }
+    
+    /**
+     * Reset photo import count
+     */
+    fun resetPhotoImportCount(context: Context) {
+        val prefs = context.getSharedPreferences("ad_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putInt(Constants.PREF_PHOTO_IMPORT_COUNT, 0).apply()
     }
 }
 

@@ -8,8 +8,10 @@ object Constants {
     const val BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111"  // Test Banner
     const val REWARDED_AD_UNIT_ID = "ca-app-pub-3940256099942544/5224354917"  // Test Rewarded
     
-    // Ad frequency settings
-    const val ALBUM_VIEW_AD_FREQUENCY = 3  // Show rewarded ad every 3rd album view
+    // Ad frequency settings - Moderate option (balanced monetization and UX)
+    const val ALBUM_VIEW_AD_FREQUENCY = 5     // Show rewarded ad every 5th album view
+    const val PHOTO_IMPORT_AD_FREQUENCY = 3   // Show rewarded ad every 3rd import session
     const val PREF_ALBUM_VIEW_COUNT = "album_view_count"
+    const val PREF_PHOTO_IMPORT_COUNT = "photo_import_count"
 }
 
