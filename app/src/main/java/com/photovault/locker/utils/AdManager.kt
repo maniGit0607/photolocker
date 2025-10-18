@@ -10,8 +10,8 @@ import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
-import com.google.android.gms.ads.rewarded.RewardedAd
-import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 
 object AdManager {
     
@@ -44,28 +44,28 @@ object AdManager {
     }
     
     /**
-     * Load a rewarded ad
+     * Load an interstitial ad
      */
-    fun loadRewardedAd(
+    fun loadInterstitialAd(
         context: Context,
-        adUnitId: String = Constants.REWARDED_AD_UNIT_ID,
-        onAdLoaded: (RewardedAd) -> Unit,
+        adUnitId: String = Constants.INTERSTITIAL_AD_UNIT_ID,
+        onAdLoaded: (InterstitialAd) -> Unit,
         onAdFailedToLoad: (LoadAdError) -> Unit
     ) {
         val adRequest = AdRequest.Builder().build()
         
-        RewardedAd.load(
+        InterstitialAd.load(
             context,
             adUnitId,
             adRequest,
-            object : RewardedAdLoadCallback() {
-                override fun onAdLoaded(rewardedAd: RewardedAd) {
-                    Log.d(TAG, "Rewarded ad loaded successfully")
-                    onAdLoaded(rewardedAd)
+            object : InterstitialAdLoadCallback() {
+                override fun onAdLoaded(interstitialAd: InterstitialAd) {
+                    Log.d(TAG, "Interstitial ad loaded successfully")
+                    onAdLoaded(interstitialAd)
                 }
                 
                 override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-                    Log.e(TAG, "Rewarded ad failed to load: ${loadAdError.message}")
+                    Log.e(TAG, "Interstitial ad failed to load: ${loadAdError.message}")
                     onAdFailedToLoad(loadAdError)
                 }
             }
@@ -73,40 +73,36 @@ object AdManager {
     }
     
     /**
-     * Show a rewarded ad
+     * Show an interstitial ad
      */
-    fun showRewardedAd(
+    fun showInterstitialAd(
         activity: Activity,
-        rewardedAd: RewardedAd?,
-        onUserEarnedReward: () -> Unit,
+        interstitialAd: InterstitialAd?,
         onAdDismissed: () -> Unit
     ) {
-        if (rewardedAd == null) {
-            Log.e(TAG, "Rewarded ad is not ready yet")
+        if (interstitialAd == null) {
+            Log.e(TAG, "Interstitial ad is not ready yet")
             onAdDismissed()
             return
         }
         
-        rewardedAd.fullScreenContentCallback = object : FullScreenContentCallback() {
+        interstitialAd.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdDismissedFullScreenContent() {
-                Log.d(TAG, "Rewarded ad dismissed")
+                Log.d(TAG, "Interstitial ad dismissed")
                 onAdDismissed()
             }
             
             override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                Log.e(TAG, "Rewarded ad failed to show: ${adError.message}")
+                Log.e(TAG, "Interstitial ad failed to show: ${adError.message}")
                 onAdDismissed()
             }
             
             override fun onAdShowedFullScreenContent() {
-                Log.d(TAG, "Rewarded ad showed")
+                Log.d(TAG, "Interstitial ad showed")
             }
         }
         
-        rewardedAd.show(activity) { rewardItem ->
-            Log.d(TAG, "User earned reward: ${rewardItem.amount} ${rewardItem.type}")
-            onUserEarnedReward()
-        }
+        interstitialAd.show(activity)
     }
     
     /**

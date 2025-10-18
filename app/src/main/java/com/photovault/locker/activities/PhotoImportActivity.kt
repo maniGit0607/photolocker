@@ -25,7 +25,7 @@ import com.photovault.locker.models.GalleryPhoto
 import com.photovault.locker.utils.AdManager
 import com.photovault.locker.utils.PermissionUtils
 import com.photovault.locker.viewmodels.PhotoImportViewModel
-import com.google.android.gms.ads.rewarded.RewardedAd
+import com.google.android.gms.ads.interstitial.InterstitialAd
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,9 +39,9 @@ class PhotoImportActivity : AppCompatActivity() {
     private var albumId: Long = -1
     private var albumName: String = ""
     
-    // Rewarded Ad
-    private var rewardedAd: RewardedAd? = null
-    private var isRewardedAdShowing = false
+    // Interstitial Ad
+    private var interstitialAd: InterstitialAd? = null
+    private var isInterstitialAdShowing = false
     private var hasShownAdOnEntry = false
     
     private val requestPermissionLauncher = registerForActivityResult(
@@ -358,22 +358,22 @@ class PhotoImportActivity : AppCompatActivity() {
         AdManager.initialize(this) {
             // Check if it's time to show ad based on frequency (every 3rd import)
             if (AdManager.shouldShowPhotoImportAd(this)) {
-                loadRewardedAd()
+                loadInterstitialAd()
             } else {
                 hasShownAdOnEntry = true // Skip ad this time
             }
         }
     }
     
-    private fun loadRewardedAd() {
-        if (hasShownAdOnEntry || isRewardedAdShowing) return
+    private fun loadInterstitialAd() {
+        if (hasShownAdOnEntry || isInterstitialAdShowing) return
         
-        AdManager.loadRewardedAd(
+        AdManager.loadInterstitialAd(
             context = this,
             onAdLoaded = { ad ->
-                rewardedAd = ad
+                interstitialAd = ad
                 // Show the ad immediately after loading
-                showRewardedAd()
+                showInterstitialAd()
             },
             onAdFailedToLoad = { error ->
                 // Failed to load ad, continue anyway
@@ -382,23 +382,19 @@ class PhotoImportActivity : AppCompatActivity() {
         )
     }
     
-    private fun showRewardedAd() {
-        if (isRewardedAdShowing || rewardedAd == null || hasShownAdOnEntry) return
+    private fun showInterstitialAd() {
+        if (isInterstitialAdShowing || interstitialAd == null || hasShownAdOnEntry) return
         
-        isRewardedAdShowing = true
+        isInterstitialAdShowing = true
         hasShownAdOnEntry = true
         
-        AdManager.showRewardedAd(
+        AdManager.showInterstitialAd(
             activity = this,
-            rewardedAd = rewardedAd,
-            onUserEarnedReward = {
-                // User watched the ad and earned reward
-                Toast.makeText(this, "Thank you for watching!", Toast.LENGTH_SHORT).show()
-            },
+            interstitialAd = interstitialAd,
             onAdDismissed = {
                 // Ad dismissed, reset state
-                isRewardedAdShowing = false
-                rewardedAd = null
+                isInterstitialAdShowing = false
+                interstitialAd = null
             }
         )
     }

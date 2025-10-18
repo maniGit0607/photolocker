@@ -18,7 +18,7 @@ import com.photovault.locker.models.Photo
 import com.photovault.locker.utils.AdManager
 import com.photovault.locker.utils.PermissionUtils
 import com.photovault.locker.viewmodels.AlbumViewViewModel
-import com.google.android.gms.ads.rewarded.RewardedAd
+import com.google.android.gms.ads.interstitial.InterstitialAd
 import kotlinx.coroutines.launch
 
 class AlbumViewActivity : AppCompatActivity() {
@@ -37,9 +37,9 @@ class AlbumViewActivity : AppCompatActivity() {
     private var currentGridSize = GridSize.MEDIUM
     private lateinit var gridLayoutManager: GridLayoutManager
     
-    // Rewarded Ad
-    private var rewardedAd: RewardedAd? = null
-    private var isRewardedAdShowing = false
+    // Interstitial Ad
+    private var interstitialAd: InterstitialAd? = null
+    private var isInterstitialAdShowing = false
     
     enum class GridSize(val columnCount: Int, val displayName: String) {
         SMALL(5, "Small"),      // 75% smaller than medium (3 -> 5 columns)
@@ -95,7 +95,7 @@ class AlbumViewActivity : AppCompatActivity() {
         setupActionButtons()
         observeData()
         setupAds()
-        checkAndShowRewardedAd()
+        checkAndShowInterstitialAd()
     }
     
     private fun getIntentExtras() {
@@ -682,46 +682,42 @@ class AlbumViewActivity : AppCompatActivity() {
         }
     }
     
-    private fun checkAndShowRewardedAd() {
+    private fun checkAndShowInterstitialAd() {
         // Check if it's time to show the ad based on frequency
         if (AdManager.shouldShowAlbumViewAd(this)) {
-            loadAndShowRewardedAd()
+            loadAndShowInterstitialAd()
         }
     }
     
-    private fun loadAndShowRewardedAd() {
-        if (isRewardedAdShowing) return
+    private fun loadAndShowInterstitialAd() {
+        if (isInterstitialAdShowing) return
         
-        // Load rewarded ad
-        AdManager.loadRewardedAd(
+        // Load interstitial ad
+        AdManager.loadInterstitialAd(
             context = this,
             onAdLoaded = { ad ->
-                rewardedAd = ad
+                interstitialAd = ad
                 // Show the ad immediately after loading
-                showRewardedAd()
+                showInterstitialAd()
             },
             onAdFailedToLoad = { error ->
                 // Failed to load ad, continue anyway
-                Toast.makeText(this, "Ad loading failed", Toast.LENGTH_SHORT).show()
+                // Silently fail - no need to show toast
             }
         )
     }
     
-    private fun showRewardedAd() {
-        if (isRewardedAdShowing || rewardedAd == null) return
+    private fun showInterstitialAd() {
+        if (isInterstitialAdShowing || interstitialAd == null) return
         
-        isRewardedAdShowing = true
-        AdManager.showRewardedAd(
+        isInterstitialAdShowing = true
+        AdManager.showInterstitialAd(
             activity = this,
-            rewardedAd = rewardedAd,
-            onUserEarnedReward = {
-                // User watched the ad and earned reward
-                Toast.makeText(this, "Thank you for watching!", Toast.LENGTH_SHORT).show()
-            },
+            interstitialAd = interstitialAd,
             onAdDismissed = {
                 // Ad dismissed, reset state
-                isRewardedAdShowing = false
-                rewardedAd = null
+                isInterstitialAdShowing = false
+                interstitialAd = null
             }
         )
     }
