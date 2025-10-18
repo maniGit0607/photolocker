@@ -21,8 +21,10 @@ import com.photovault.locker.R
 import com.photovault.locker.adapters.GalleryPhotoAdapter
 import com.photovault.locker.databinding.ActivityPhotoImportBinding
 import com.photovault.locker.models.GalleryPhoto
+import com.photovault.locker.utils.AdManager
 import com.photovault.locker.utils.PermissionUtils
 import com.photovault.locker.viewmodels.PhotoImportViewModel
+import com.google.android.gms.ads.rewarded.RewardedAd
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,6 +37,11 @@ class PhotoImportActivity : AppCompatActivity() {
     
     private var albumId: Long = -1
     private var albumName: String = ""
+    
+    // Rewarded Ad
+    private var rewardedAd: RewardedAd? = null
+    private var isRewardedAdShowing = false
+    private var hasShownAdOnEntry = false
     
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -62,6 +69,7 @@ class PhotoImportActivity : AppCompatActivity() {
             setupViewModel()
             setupRecyclerView()
             setupListeners()
+            setupAds()
             
             Toast.makeText(this, "Checking permissions", Toast.LENGTH_SHORT).show()
             if (PermissionUtils.hasStoragePermissions(this)) {
@@ -285,6 +293,51 @@ class PhotoImportActivity : AppCompatActivity() {
             .show()
     }
     
+    private fun setupAds() {
+        // Initialize AdMob and load rewarded ad
+        AdManager.initialize(this) {
+            // Load rewarded ad after initialization
+            loadRewardedAd()
+        }
+    }
+    
+    private fun loadRewardedAd() {
+        if (hasShownAdOnEntry || isRewardedAdShowing) return
+        
+        AdManager.loadRewardedAd(
+            context = this,
+            onAdLoaded = { ad ->
+                rewardedAd = ad
+                // Show the ad immediately after loading
+                showRewardedAd()
+            },
+            onAdFailedToLoad = { error ->
+                // Failed to load ad, continue anyway
+                hasShownAdOnEntry = true
+            }
+        )
+    }
+    
+    private fun showRewardedAd() {
+        if (isRewardedAdShowing || rewardedAd == null || hasShownAdOnEntry) return
+        
+        isRewardedAdShowing = true
+        hasShownAdOnEntry = true
+        
+        AdManager.showRewardedAd(
+            activity = this,
+            rewardedAd = rewardedAd,
+            onUserEarnedReward = {
+                // User watched the ad and earned reward
+                Toast.makeText(this, "Thank you for watching!", Toast.LENGTH_SHORT).show()
+            },
+            onAdDismissed = {
+                // Ad dismissed, reset state
+                isRewardedAdShowing = false
+                rewardedAd = null
+            }
+        )
+    }
     
 }
 

@@ -15,8 +15,10 @@ import com.photovault.locker.adapters.PhotoAdapter
 import com.photovault.locker.databinding.ActivityAlbumViewBinding
 import com.photovault.locker.models.GalleryPhoto
 import com.photovault.locker.models.Photo
+import com.photovault.locker.utils.AdManager
 import com.photovault.locker.utils.PermissionUtils
 import com.photovault.locker.viewmodels.AlbumViewViewModel
+import com.google.android.gms.ads.rewarded.RewardedAd
 import kotlinx.coroutines.launch
 
 class AlbumViewActivity : AppCompatActivity() {
@@ -34,6 +36,10 @@ class AlbumViewActivity : AppCompatActivity() {
     // Grid size management
     private var currentGridSize = GridSize.MEDIUM
     private lateinit var gridLayoutManager: GridLayoutManager
+    
+    // Rewarded Ad
+    private var rewardedAd: RewardedAd? = null
+    private var isRewardedAdShowing = false
     
     enum class GridSize(val columnCount: Int, val displayName: String) {
         SMALL(5, "Small"),      // 75% smaller than medium (3 -> 5 columns)
@@ -88,6 +94,8 @@ class AlbumViewActivity : AppCompatActivity() {
         setupFab()
         setupActionButtons()
         observeData()
+        setupAds()
+        checkAndShowRewardedAd()
     }
     
     private fun getIntentExtras() {
@@ -654,8 +662,8 @@ class AlbumViewActivity : AppCompatActivity() {
                         viewModel.deleteImportedPhotosFromGallery(importedGalleryPhotos)
                     }
                 } else {
-                    // Request MANAGE_EXTERNAL_STORAGE permission
-                    showManageStoragePermissionDialog()
+                    // No permission, show toast
+                    Toast.makeText(this, "No permission. Please provide storage permission in Settings.", Toast.LENGTH_LONG).show()
                 }
             }
             .setNegativeButton("Keep in Gallery") { _, _ ->
@@ -666,22 +674,56 @@ class AlbumViewActivity : AppCompatActivity() {
             .show()
     }
     
-    private fun showManageStoragePermissionDialog() {
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Storage Permission Required")
-            .setMessage("To delete photos from gallery, this app needs 'All files access' permission. Please grant this permission in the next screen.")
-            .setPositiveButton("Grant Permission") { _, _ ->
-                try {
-                    val intent = PermissionUtils.getManageExternalStorageIntent(this)
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    Toast.makeText(this, "Please enable 'All files access' permission in Settings", Toast.LENGTH_LONG).show()
-                }
+    private fun setupAds() {
+        // Initialize AdMob
+        AdManager.initialize(this) {
+            // Load banner ad after initialization
+            AdManager.loadBannerAd(binding.adView)
+        }
+    }
+    
+    private fun checkAndShowRewardedAd() {
+        // Check if it's time to show the ad based on frequency
+        if (AdManager.shouldShowAlbumViewAd(this)) {
+            loadAndShowRewardedAd()
+        }
+    }
+    
+    private fun loadAndShowRewardedAd() {
+        if (isRewardedAdShowing) return
+        
+        // Load rewarded ad
+        AdManager.loadRewardedAd(
+            context = this,
+            onAdLoaded = { ad ->
+                rewardedAd = ad
+                // Show the ad immediately after loading
+                showRewardedAd()
+            },
+            onAdFailedToLoad = { error ->
+                // Failed to load ad, continue anyway
+                Toast.makeText(this, "Ad loading failed", Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("Cancel") { _, _ ->
-                Toast.makeText(this, "Photos kept in gallery", Toast.LENGTH_SHORT).show()
+        )
+    }
+    
+    private fun showRewardedAd() {
+        if (isRewardedAdShowing || rewardedAd == null) return
+        
+        isRewardedAdShowing = true
+        AdManager.showRewardedAd(
+            activity = this,
+            rewardedAd = rewardedAd,
+            onUserEarnedReward = {
+                // User watched the ad and earned reward
+                Toast.makeText(this, "Thank you for watching!", Toast.LENGTH_SHORT).show()
+            },
+            onAdDismissed = {
+                // Ad dismissed, reset state
+                isRewardedAdShowing = false
+                rewardedAd = null
             }
-            .show()
+        )
     }
     
 }

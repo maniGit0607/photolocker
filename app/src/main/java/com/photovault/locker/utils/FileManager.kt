@@ -1,10 +1,13 @@
 package com.photovault.locker.utils
 
+import android.app.Activity
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
+import androidx.activity.result.IntentSenderRequest
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -50,19 +53,35 @@ class FileManager(private val context: Context) {
     
     fun deletePhotoFromGallery(uri: Uri): Boolean {
         return try {
-            // First try the standard content resolver deletion
+            // Use MediaStore API for scoped storage (Android 10+)
+            // This works for photos without needing MANAGE_EXTERNAL_STORAGE
             val rowsDeleted = context.contentResolver.delete(uri, null, null)
-            val success = rowsDeleted > 0
             
-            if (success) {
+            if (rowsDeleted > 0) {
                 Log.d(TAG, "Successfully deleted photo from gallery: $uri")
-                return true
+                true
             } else {
-                Log.w(TAG, "Standard deletion failed, trying alternative method: $uri")
+                Log.w(TAG, "No rows deleted for URI: $uri")
+                false
+            }
+        } catch (e: SecurityException) {
+            // On Android 10+ (API 29+), if the app doesn't own the media,
+            // we need user permission. This is handled automatically by the system
+            // through RecoverableSecurityException for API 29+, but since we're
+            // importing photos that the user selected, we should have permission.
+            Log.e(TAG, "SecurityException when deleting photo from gallery: $uri", e)
+            
+            // For Android 10+, attempt to handle RecoverableSecurityException
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if (e is android.app.RecoverableSecurityException) {
+                    Log.w(TAG, "RecoverableSecurityException - user permission required: $uri")
+                    // The calling activity should handle this via IntentSender
+                    // For now, we'll return false as we can't get permission here
+                }
             }
             false
-        } catch (e: SecurityException) {
-            Log.e(TAG, "Permission denied when deleting photo from gallery: $uri", e)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting photo from gallery: $uri", e)
             false
         }
     }

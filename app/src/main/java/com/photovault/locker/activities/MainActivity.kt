@@ -21,6 +21,7 @@ import com.photovault.locker.adapters.AlbumAdapter
 import com.photovault.locker.databinding.ActivityMainBinding
 import com.photovault.locker.databinding.DialogCreateAlbumBinding
 import com.photovault.locker.models.Album
+import com.photovault.locker.utils.AdManager
 import com.photovault.locker.utils.PermissionUtils
 import com.photovault.locker.viewmodels.MainViewModel
 
@@ -61,6 +62,7 @@ class MainActivity : AppCompatActivity() {
         setupRecyclerView()
         setupFab()
         observeData()
+        setupAds()
         
         checkPermissions()
     }
@@ -102,6 +104,14 @@ class MainActivity : AppCompatActivity() {
             } else {
                 requestPermissions()
             }
+        }
+    }
+    
+    private fun setupAds() {
+        // Initialize AdMob
+        AdManager.initialize(this) {
+            // Load banner ad after initialization
+            AdManager.loadBannerAd(binding.adView)
         }
     }
     
