@@ -248,10 +248,23 @@ class MainActivity : AppCompatActivity() {
     
     private fun showAboutDialog() {
         MaterialAlertDialogBuilder(this)
-            .setTitle("About PhotoVault Locker")
-            .setMessage("PhotoVault Locker\nVersion 1.0\n\nA secure photo vault application to keep your photos private and protected.")
+            .setTitle("About Shivdi Photo Vault")
+            .setMessage("Shivdi Photo Vault\nVersion 1.0\n\nA secure photo vault application to keep your photos private and protected.\n\nBy Shivdi Apps")
             .setPositiveButton("OK", null)
+            .setNeutralButton("Privacy Policy") { _, _ ->
+                openPrivacyPolicy()
+            }
             .show()
+    }
+    
+    private fun openPrivacyPolicy() {
+        val url = "https://sites.google.com/view/shivdiappsprivacypolicy"
+        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Cannot open privacy policy", Toast.LENGTH_SHORT).show()
+        }
     }
     
     private fun showPermissionRationaleDialog() {
