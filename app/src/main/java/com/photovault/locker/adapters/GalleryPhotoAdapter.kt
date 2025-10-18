@@ -16,6 +16,8 @@ class GalleryPhotoAdapter(
 ) : ListAdapter<GalleryPhoto, GalleryPhotoAdapter.GalleryPhotoViewHolder>(GalleryPhotoDiffCallback()) {
 
     private val selectedPhotos = mutableSetOf<Long>()
+    private var isDragSelecting = false
+    private var dragSelectMode: Boolean? = null // true = select, false = deselect, null = not determined yet
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GalleryPhotoViewHolder {
         val binding = ItemGalleryPhotoBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -76,6 +78,41 @@ class GalleryPhotoAdapter(
 
     fun getSelectedPhotos(): List<GalleryPhoto> {
         return currentList.filter { selectedPhotos.contains(it.id) }
+    }
+    
+    fun startDragSelection() {
+        isDragSelecting = true
+        dragSelectMode = null
+    }
+    
+    fun endDragSelection() {
+        isDragSelecting = false
+        dragSelectMode = null
+    }
+    
+    fun handleDragSelection(position: Int) {
+        if (!isDragSelecting || position < 0 || position >= currentList.size) return
+        
+        val photo = getItem(position)
+        val isCurrentlySelected = selectedPhotos.contains(photo.id)
+        
+        // Determine drag mode on first item
+        if (dragSelectMode == null) {
+            dragSelectMode = !isCurrentlySelected // If first item is unselected, we're selecting; otherwise deselecting
+        }
+        
+        // Apply the drag mode
+        if (dragSelectMode == true && !isCurrentlySelected) {
+            // Select mode: add if not selected
+            selectedPhotos.add(photo.id)
+            notifyItemChanged(position)
+            onSelectionChanged(selectedPhotos.size)
+        } else if (dragSelectMode == false && isCurrentlySelected) {
+            // Deselect mode: remove if selected
+            selectedPhotos.remove(photo.id)
+            notifyItemChanged(position)
+            onSelectionChanged(selectedPhotos.size)
+        }
     }
 
     private class GalleryPhotoDiffCallback : DiffUtil.ItemCallback<GalleryPhoto>() {

@@ -127,6 +127,65 @@ class PhotoImportActivity : AppCompatActivity() {
             layoutManager = GridLayoutManager(this@PhotoImportActivity, 3)
             adapter = galleryAdapter
             
+            // Add drag selection touch listener
+            addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
+                private var isDragging = false
+                private var lastDraggedPosition = -1
+                
+                override fun onInterceptTouchEvent(rv: RecyclerView, e: android.view.MotionEvent): Boolean {
+                    when (e.action) {
+                        android.view.MotionEvent.ACTION_DOWN -> {
+                            // Check if touch is on an item
+                            val view = rv.findChildViewUnder(e.x, e.y)
+                            if (view != null) {
+                                val position = rv.getChildAdapterPosition(view)
+                                if (position != RecyclerView.NO_POSITION) {
+                                    isDragging = false // Will become true on ACTION_MOVE
+                                    lastDraggedPosition = position
+                                }
+                            }
+                        }
+                        android.view.MotionEvent.ACTION_MOVE -> {
+                            if (!isDragging) {
+                                isDragging = true
+                                galleryAdapter.startDragSelection()
+                                // Handle the first item
+                                if (lastDraggedPosition != -1) {
+                                    galleryAdapter.handleDragSelection(lastDraggedPosition)
+                                }
+                            }
+                            
+                            // Handle drag over items
+                            val view = rv.findChildViewUnder(e.x, e.y)
+                            if (view != null) {
+                                val position = rv.getChildAdapterPosition(view)
+                                if (position != RecyclerView.NO_POSITION && position != lastDraggedPosition) {
+                                    galleryAdapter.handleDragSelection(position)
+                                    lastDraggedPosition = position
+                                }
+                            }
+                        }
+                        android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                            if (isDragging) {
+                                galleryAdapter.endDragSelection()
+                                isDragging = false
+                                lastDraggedPosition = -1
+                                return true // Consume the event to prevent click
+                            }
+                        }
+                    }
+                    return false // Don't intercept, let click events through
+                }
+                
+                override fun onTouchEvent(rv: RecyclerView, e: android.view.MotionEvent) {
+                    // Not needed for our implementation
+                }
+                
+                override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {
+                    // Not needed for our implementation
+                }
+            })
+            
             // Debug RecyclerView layout
             post {
                 android.util.Log.d("PhotoImportActivity", "RecyclerView dimensions: ${width}x${height}")
