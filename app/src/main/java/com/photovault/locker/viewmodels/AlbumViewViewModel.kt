@@ -206,31 +206,31 @@ class AlbumViewViewModel(
     fun deleteImportedPhotosFromGallery(importedGalleryPhotos: List<GalleryPhoto>) {
         viewModelScope.launch {
             try {
-                android.util.Log.d("AlbumViewViewModel", "Starting batch gallery deletion of ${importedGalleryPhotos.size} photos")
+                android.util.Log.d("AlbumViewViewModel", "Starting gallery deletion of ${importedGalleryPhotos.size} photos")
                 
                 val uris = importedGalleryPhotos.map { it.uri }
                 
-                // Use MediaStore batch deletion API (Android 11+)
-                val result = fileManager.deleteMultiplePhotosFromGallery(uris)
+                // Use fallback approach to prevent repeated permission dialogs
+                val result = fileManager.deleteMultiplePhotosFromGalleryWithFallback(uris)
                 
                 when (result) {
                     is com.photovault.locker.utils.FileManager.BatchGalleryDeletionResult.Success -> {
-                        android.util.Log.d("AlbumViewViewModel", "Batch deletion completed. Deleted: ${result.deletedCount}, Failed: ${result.failedCount}")
+                        android.util.Log.d("AlbumViewViewModel", "Deletion completed. Deleted: ${result.deletedCount}, Failed: ${result.failedCount}")
                         _galleryDeletionResult.value = Pair(result.deletedCount > 0, result.deletedCount)
                     }
                     is com.photovault.locker.utils.FileManager.BatchGalleryDeletionResult.Failed -> {
-                        android.util.Log.e("AlbumViewViewModel", "Batch deletion failed: ${result.reason}")
+                        android.util.Log.e("AlbumViewViewModel", "Deletion failed: ${result.reason}")
                         _error.value = "Failed to delete photos from gallery: ${result.reason}"
                         _galleryDeletionResult.value = Pair(false, 0)
                     }
                     is com.photovault.locker.utils.FileManager.BatchGalleryDeletionResult.PermissionRequired -> {
-                        android.util.Log.w("AlbumViewViewModel", "Permission required for batch deletion")
+                        android.util.Log.w("AlbumViewViewModel", "Permission required for deletion")
                         _permissionRequired.value = result.intentSenders
                     }
                 }
                 
             } catch (e: Exception) {
-                android.util.Log.e("AlbumViewViewModel", "Batch deletion failed with exception: ${e.message}", e)
+                android.util.Log.e("AlbumViewViewModel", "Deletion failed with exception: ${e.message}", e)
                 _error.value = "Failed to delete photos from gallery: ${e.message}"
                 _galleryDeletionResult.value = Pair(false, 0)
             }

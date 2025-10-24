@@ -100,8 +100,7 @@ class FileManager(private val context: Context) {
             
             Log.d(TAG, "MediaStore batch delete request created for ${uris.size} photos")
             
-            // The system will handle the permission request automatically
-            // We need to return the pending intent for the user to approve
+            // Get the pending intent from the delete request
             val pendingIntent = deleteRequest
             val intentSender = pendingIntent.intentSender
             
@@ -111,6 +110,70 @@ class FileManager(private val context: Context) {
         } catch (e: Exception) {
             Log.e(TAG, "Error creating batch delete request: ${e.message}", e)
             BatchGalleryDeletionResult.Failed("Batch delete request failed: ${e.message}")
+        }
+    }
+    
+    /**
+     * Alternative approach: Try to delete photos directly first, then fall back to batch request
+     * This prevents repeated permission dialogs
+     */
+    fun deleteMultiplePhotosFromGalleryWithFallback(uris: List<Uri>): BatchGalleryDeletionResult {
+        return try {
+            Log.d(TAG, "Attempting to delete ${uris.size} photos with fallback approach")
+            
+            var successCount = 0
+            val failedUris = mutableListOf<Uri>()
+            val permissionIntents = mutableListOf<android.content.IntentSender>()
+            
+            // Try to delete each photo directly first
+            for (uri in uris) {
+                try {
+                    val rowsDeleted = context.contentResolver.delete(uri, null, null)
+                    if (rowsDeleted > 0) {
+                        successCount++
+                        Log.d(TAG, "Successfully deleted photo: $uri")
+                    } else {
+                        failedUris.add(uri)
+                        Log.w(TAG, "No rows deleted for URI: $uri")
+                    }
+                } catch (e: SecurityException) {
+                    Log.e(TAG, "SecurityException when deleting photo: $uri", e)
+                    if (e is android.app.RecoverableSecurityException) {
+                        val intentSender = e.userAction.actionIntent.intentSender
+                        permissionIntents.add(intentSender)
+                        Log.w(TAG, "Permission required for: $uri")
+                    } else {
+                        failedUris.add(uri)
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error deleting photo: $uri", e)
+                    failedUris.add(uri)
+                }
+            }
+            
+            Log.d(TAG, "Direct deletion completed. Success: $successCount, Failed: ${failedUris.size}, Permission needed: ${permissionIntents.size}")
+            
+            when {
+                permissionIntents.isNotEmpty() -> {
+                    // Some photos need permission, use batch request for remaining
+                    if (failedUris.isNotEmpty()) {
+                        try {
+                            val batchDeleteRequest = MediaStore.createDeleteRequest(context.contentResolver, failedUris)
+                            val batchIntentSender = batchDeleteRequest.intentSender
+                            permissionIntents.add(batchIntentSender)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error creating batch request for failed URIs: ${e.message}")
+                        }
+                    }
+                    BatchGalleryDeletionResult.PermissionRequired(permissionIntents)
+                }
+                successCount > 0 -> BatchGalleryDeletionResult.Success(successCount, failedUris.size)
+                else -> BatchGalleryDeletionResult.Failed("All deletions failed")
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in fallback deletion: ${e.message}", e)
+            BatchGalleryDeletionResult.Failed("Deletion failed: ${e.message}")
         }
     }
     

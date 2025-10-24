@@ -33,6 +33,9 @@ class AlbumViewActivity : AppCompatActivity() {
     // Store imported gallery photos for potential deletion
     private var importedGalleryPhotos: List<GalleryPhoto> = emptyList()
     
+    // Flag to prevent repeated permission requests
+    private var isPermissionRequestInProgress = false
+    
     // Grid size management
     private var currentGridSize = GridSize.MEDIUM
     private lateinit var gridLayoutManager: GridLayoutManager
@@ -61,14 +64,22 @@ class AlbumViewActivity : AppCompatActivity() {
     private val requestDeletePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
+        android.util.Log.d("AlbumViewActivity", "Permission result received: ${result.resultCode}")
+        
         if (result.resultCode == RESULT_OK) {
-            // Permission granted, retry batch deletion
-            if (importedGalleryPhotos.isNotEmpty()) {
-                viewModel.retryGalleryDeletion(importedGalleryPhotos)
-            }
+            // Permission granted, mark as completed
+            android.util.Log.d("AlbumViewActivity", "Permission granted, deletion should be completed by system")
+            Toast.makeText(this, "Photos deleted from gallery", Toast.LENGTH_SHORT).show()
+            
+            // Don't retry - the system handles the deletion automatically
+            // The MediaStore batch delete request will complete the deletion
         } else {
+            android.util.Log.w("AlbumViewActivity", "Permission denied or cancelled")
             Toast.makeText(this, "Permission denied. Photos will remain in gallery.", Toast.LENGTH_LONG).show()
         }
+        
+        // Reset the flag
+        isPermissionRequestInProgress = false
     }
     
     private val photoImportLauncher = registerForActivityResult(
@@ -309,9 +320,10 @@ class AlbumViewActivity : AppCompatActivity() {
         
         // Observe permission requests for gallery deletion
         viewModel.permissionRequired.observe(this) { intentSenders ->
-            if (intentSenders.isNotEmpty()) {
+            if (intentSenders.isNotEmpty() && !isPermissionRequestInProgress) {
                 // For batch deletion, we typically only need one permission request
                 // as MediaStore handles multiple items in a single operation
+                isPermissionRequestInProgress = true
                 val intentSender = intentSenders.first()
                 val intentSenderRequest = androidx.activity.result.IntentSenderRequest.Builder(intentSender).build()
                 requestDeletePermissionLauncher.launch(intentSenderRequest)
