@@ -116,8 +116,9 @@ class FileManager(private val context: Context) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 if (e is android.app.RecoverableSecurityException) {
                     Log.w(TAG, "RecoverableSecurityException - user permission required: $uri")
-                    Log.w(TAG, "IntentSender available: ${e.intentSender != null}")
-                    return GalleryDeletionResult.PermissionRequired(e.intentSender)
+                    val intentSender = e.userAction.actionIntent.intentSender
+                    Log.w(TAG, "IntentSender available: ${intentSender != null}")
+                    return GalleryDeletionResult.PermissionRequired(intentSender)
                 }
             }
             GalleryDeletionResult.Failed("SecurityException: ${e.message}")
