@@ -67,15 +67,15 @@ class AlbumViewActivity : AppCompatActivity() {
         android.util.Log.d("AlbumViewActivity", "Permission result received: ${result.resultCode}")
         
         if (result.resultCode == RESULT_OK) {
-            // Permission granted, mark as completed
-            android.util.Log.d("AlbumViewActivity", "Permission granted, deletion should be completed by system")
-            Toast.makeText(this, "Photos deleted from gallery", Toast.LENGTH_SHORT).show()
+            // Permission granted, deletion will be completed by system
+            android.util.Log.d("AlbumViewActivity", "Permission granted, automatic deletion will be completed by system")
+            Toast.makeText(this, "✓ Photos will be removed from gallery", Toast.LENGTH_SHORT).show()
             
             // Don't retry - the system handles the deletion automatically
             // The MediaStore batch delete request will complete the deletion
         } else {
-            android.util.Log.w("AlbumViewActivity", "Permission denied or cancelled")
-            Toast.makeText(this, "Permission denied. Photos will remain in gallery.", Toast.LENGTH_LONG).show()
+            android.util.Log.w("AlbumViewActivity", "Permission denied or cancelled for automatic deletion")
+            // Don't show error toast for automatic deletion to avoid interrupting user experience
         }
         
         // Reset the flag
@@ -95,13 +95,14 @@ class AlbumViewActivity : AppCompatActivity() {
                 ?.mapNotNull { it as? GalleryPhoto } ?: emptyList()
             
             if (importedCount > 0 && galleryPhotos.isNotEmpty()) {
-                // Store the gallery photos for potential deletion
+                // Store the gallery photos for automatic deletion
                 importedGalleryPhotos = galleryPhotos
                 
-                // Show dialog after a short delay to let user see the photos in album
+                // Automatically delete photos from gallery after a short delay
                 binding.rvPhotos.postDelayed({
-                    viewModel.showGalleryDeletionDialog(importedCount)
-                }, 1000) // 1 second delay
+                    android.util.Log.d("AlbumViewActivity", "Starting automatic gallery deletion for ${galleryPhotos.size} photos")
+                    viewModel.deleteImportedPhotosFromGallery(galleryPhotos)
+                }, 1500) // 1.5 second delay to let user see the photos
             }
         }
     }
@@ -295,26 +296,23 @@ class AlbumViewActivity : AppCompatActivity() {
             }
         }
         
-        // Observe gallery deletion dialog trigger
-        viewModel.showGalleryDeletionDialog.observe(this) { count ->
-            if (count > 0) {
-                showGalleryDeletionConfirmationDialog(count)
-            }
-        }
+        // Gallery deletion dialog is no longer needed - deletion is automatic
         
         // Observe gallery deletion result
         viewModel.galleryDeletionResult.observe(this) { (success, deletedCount) ->
             if (success) {
                 if (deletedCount > 0) {
                     val message = if (deletedCount == 1) {
-                        "1 photo deleted from gallery"
+                        "✓ 1 photo removed from gallery"
                     } else {
-                        "$deletedCount photos deleted from gallery"
+                        "✓ $deletedCount photos removed from gallery"
                     }
                     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                    android.util.Log.d("AlbumViewActivity", "Automatic gallery deletion completed: $deletedCount photos deleted")
                 }
             } else {
-                Toast.makeText(this, "Failed to delete photos from gallery", Toast.LENGTH_LONG).show()
+                android.util.Log.w("AlbumViewActivity", "Automatic gallery deletion failed")
+                // Don't show error toast for automatic deletion to avoid interrupting user experience
             }
         }
         
@@ -693,35 +691,7 @@ class AlbumViewActivity : AppCompatActivity() {
         }
     }
     
-    private fun showGalleryDeletionConfirmationDialog(count: Int) {
-        val message = if (count == 1) {
-            "Photos have been safely imported to your album. You can see them above. Do you want to delete 1 imported photo from gallery?"
-        } else {
-            "Photos have been safely imported to your album. You can see them above. Do you want to delete $count imported photos from gallery?"
-        }
-        
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Delete from Gallery")
-            .setMessage(message)
-            .setPositiveButton("Delete") { _, _ ->
-                // Check permissions before attempting deletion
-                if (PermissionUtils.hasStoragePermissions(this)) {
-                    // Use the stored gallery photos for deletion
-                    if (importedGalleryPhotos.isNotEmpty()) {
-                        viewModel.deleteImportedPhotosFromGallery(importedGalleryPhotos)
-                    }
-                } else {
-                    // No permission, show toast
-                    Toast.makeText(this, "No permission. Please provide storage permission in Settings.", Toast.LENGTH_LONG).show()
-                }
-            }
-            .setNegativeButton("Keep in Gallery") { _, _ ->
-                viewModel.skipGalleryDeletion()
-                Toast.makeText(this, "Photos kept in gallery", Toast.LENGTH_SHORT).show()
-            }
-            .setCancelable(false)
-            .show()
-    }
+    // Gallery deletion dialog method removed - deletion is now automatic
     
     private fun setupAds() {
         // Initialize AdMob with consent handling

@@ -29,9 +29,7 @@ class AlbumViewViewModel(
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> = _error
     
-    // Gallery deletion functionality
-    private val _showGalleryDeletionDialog = MutableLiveData<Int>()
-    val showGalleryDeletionDialog: LiveData<Int> = _showGalleryDeletionDialog
+    // Gallery deletion functionality - now automatic
     
     private val _galleryDeletionResult = MutableLiveData<Pair<Boolean, Int>>()
     val galleryDeletionResult: LiveData<Pair<Boolean, Int>> = _galleryDeletionResult
@@ -199,9 +197,7 @@ class AlbumViewViewModel(
         }
     }
     
-    fun showGalleryDeletionDialog(importedCount: Int) {
-        _showGalleryDeletionDialog.value = importedCount
-    }
+    // Gallery deletion dialog method removed - deletion is now automatic
     
     fun deleteImportedPhotosFromGallery(importedGalleryPhotos: List<GalleryPhoto>) {
         viewModelScope.launch {
@@ -241,9 +237,7 @@ class AlbumViewViewModel(
         }
     }
     
-    fun skipGalleryDeletion() {
-        _galleryDeletionResult.value = Pair(true, 0)
-    }
+    // Skip gallery deletion method removed - deletion is now automatic
     
     fun retryGalleryDeletion(importedGalleryPhotos: List<GalleryPhoto>) {
         deleteImportedPhotosFromGallery(importedGalleryPhotos)
