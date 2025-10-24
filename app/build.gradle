@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "com.photovault.locker"
-        minSdk 21
+        minSdk 23
         targetSdk 34
         versionCode 1
         versionName "1.0"
@@ -38,6 +38,12 @@ android {
     buildFeatures {
         viewBinding true
     }
+    
+    // Resolve namespace conflicts
+    packagingOptions {
+        pickFirst '**/libc++_shared.so'
+        pickFirst '**/libjsc.so'
+    }
 }
 
 dependencies {
@@ -56,11 +62,11 @@ dependencies {
     implementation 'androidx.security:security-crypto:1.1.0-alpha06'
     implementation 'com.github.bumptech.glide:glide:4.15.1'
     
-    // Google AdMob
+    // Google AdMob - using compatible versions to avoid namespace conflicts
     implementation 'com.google.android.gms:play-services-ads:22.6.0'
     
-    // Google UMP SDK for GDPR/CCPA consent
-    implementation 'com.google.android.ump:user-messaging-platform:2.1.0'
+    // Google UMP SDK for GDPR/CCPA consent - using compatible version
+    implementation 'com.google.android.ump:user-messaging-platform:2.0.0'
     
     kapt 'androidx.room:room-compiler:2.5.0'
     kapt 'com.github.bumptech.glide:compiler:4.15.1'
