@@ -124,8 +124,8 @@ object ConsentManager {
                     consentForm.show(
                         context,
                         { formError ->
-                            Log.e(TAG, "Consent form error: ${formError.message}")
-                            onConsentError("Consent form error: ${formError.message}")
+                            Log.e(TAG, "Consent form error: ${formError?.message}")
+                            onConsentError("Consent form error: ${formError?.message}")
                         }
                     )
                 }

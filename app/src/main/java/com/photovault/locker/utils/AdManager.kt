@@ -3,8 +3,8 @@ package com.photovault.locker.utils
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import android.os.Bundle
+import com.google.ads.mediation.admob.AdMobAdapter
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
@@ -13,7 +13,6 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
-import com.google.android.gms.ads.mediation.admob.AdMobAdapter
 
 object AdManager {
     

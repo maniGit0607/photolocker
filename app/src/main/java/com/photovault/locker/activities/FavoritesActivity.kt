@@ -63,7 +63,8 @@ class FavoritesActivity : AppCompatActivity() {
             onSelectionModeChanged = { isSelectionMode ->
                 // Not needed for favorites view
             },
-            context = this
+            context = this,
+            true
         )
         
         binding.rvFavorites.apply {
