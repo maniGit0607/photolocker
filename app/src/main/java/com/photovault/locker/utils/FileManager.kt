@@ -86,6 +86,58 @@ class FileManager(private val context: Context) {
         }
     }
     
+    /**
+     * Enhanced method to delete photo from gallery with proper permission handling
+     * Returns a result that includes whether permission is needed
+     */
+    fun deletePhotoFromGalleryWithPermission(uri: Uri): GalleryDeletionResult {
+        return try {
+            Log.d(TAG, "Attempting to delete photo from gallery: $uri")
+            Log.d(TAG, "Android version: ${Build.VERSION.SDK_INT}, API level: ${Build.VERSION_CODES.Q}")
+            
+            // Use MediaStore API for scoped storage (Android 10+)
+            val rowsDeleted = context.contentResolver.delete(uri, null, null)
+            
+            Log.d(TAG, "ContentResolver.delete() returned: $rowsDeleted rows deleted")
+            
+            if (rowsDeleted > 0) {
+                Log.d(TAG, "Successfully deleted photo from gallery: $uri")
+                GalleryDeletionResult.Success
+            } else {
+                Log.w(TAG, "No rows deleted for URI: $uri")
+                GalleryDeletionResult.Failed("No rows deleted")
+            }
+        } catch (e: SecurityException) {
+            Log.e(TAG, "SecurityException when deleting photo from gallery: $uri", e)
+            Log.e(TAG, "SecurityException type: ${e.javaClass.simpleName}")
+            Log.e(TAG, "SecurityException message: ${e.message}")
+            
+            // For Android 10+, handle RecoverableSecurityException
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if (e is android.app.RecoverableSecurityException) {
+                    Log.w(TAG, "RecoverableSecurityException - user permission required: $uri")
+                    Log.w(TAG, "IntentSender available: ${e.intentSender != null}")
+                    return GalleryDeletionResult.PermissionRequired(e.intentSender)
+                }
+            }
+            GalleryDeletionResult.Failed("SecurityException: ${e.message}")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting photo from gallery: $uri", e)
+            Log.e(TAG, "Exception type: ${e.javaClass.simpleName}")
+            Log.e(TAG, "Exception message: ${e.message}")
+            GalleryDeletionResult.Failed("Exception: ${e.message}")
+        }
+    }
+    
+    /**
+     * Result of gallery deletion attempt
+     */
+    sealed class GalleryDeletionResult {
+        object Success : GalleryDeletionResult()
+        data class Failed(val reason: String) : GalleryDeletionResult()
+        data class PermissionRequired(val intentSender: android.content.IntentSender) : GalleryDeletionResult()
+    }
+    
     fun deletePhotoFromAppStorage(filePath: String): Boolean {
         return try {
             val file = File(filePath)

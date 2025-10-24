@@ -58,6 +58,19 @@ class AlbumViewActivity : AppCompatActivity() {
         }
     }
     
+    private val requestDeletePermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            // Permission granted, retry deletion
+            if (importedGalleryPhotos.isNotEmpty()) {
+                viewModel.retryGalleryDeletion(importedGalleryPhotos)
+            }
+        } else {
+            Toast.makeText(this, "Permission denied. Photos will remain in gallery.", Toast.LENGTH_LONG).show()
+        }
+    }
+    
     private val photoImportLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -291,6 +304,16 @@ class AlbumViewActivity : AppCompatActivity() {
                 }
             } else {
                 Toast.makeText(this, "Failed to delete photos from gallery", Toast.LENGTH_LONG).show()
+            }
+        }
+        
+        // Observe permission requests for gallery deletion
+        viewModel.permissionRequired.observe(this) { intentSenders ->
+            if (intentSenders.isNotEmpty()) {
+                // Request permission for the first intent sender
+                val intentSender = intentSenders.first()
+                val intentSenderRequest = androidx.activity.result.IntentSenderRequest.Builder(intentSender).build()
+                requestDeletePermissionLauncher.launch(intentSenderRequest)
             }
         }
     }

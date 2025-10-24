@@ -36,6 +36,9 @@ class AlbumViewViewModel(
     private val _galleryDeletionResult = MutableLiveData<Pair<Boolean, Int>>()
     val galleryDeletionResult: LiveData<Pair<Boolean, Int>> = _galleryDeletionResult
     
+    private val _permissionRequired = MutableLiveData<List<android.content.IntentSender>>()
+    val permissionRequired: LiveData<List<android.content.IntentSender>> = _permissionRequired
+    
     fun refreshPhotos() {
         viewModelScope.launch {
             try {
@@ -205,23 +208,39 @@ class AlbumViewViewModel(
             try {
                 android.util.Log.d("AlbumViewViewModel", "Starting gallery deletion of ${importedGalleryPhotos.size} photos")
                 var successCount = 0
+                var permissionRequired = false
+                val permissionIntents = mutableListOf<android.content.IntentSender>()
                 
                 for (galleryPhoto in importedGalleryPhotos) {
                     try {
-                        val deleted = fileManager.deletePhotoFromGallery(galleryPhoto.uri)
-                        if (deleted) {
-                            successCount++
-                            android.util.Log.d("AlbumViewViewModel", "Successfully deleted from gallery: ${galleryPhoto.displayName}")
-                        } else {
-                            android.util.Log.w("AlbumViewViewModel", "Failed to delete from gallery: ${galleryPhoto.displayName}")
+                        val result = fileManager.deletePhotoFromGalleryWithPermission(galleryPhoto.uri)
+                        when (result) {
+                            is com.photovault.locker.utils.FileManager.GalleryDeletionResult.Success -> {
+                                successCount++
+                                android.util.Log.d("AlbumViewViewModel", "Successfully deleted from gallery: ${galleryPhoto.displayName}")
+                            }
+                            is com.photovault.locker.utils.FileManager.GalleryDeletionResult.Failed -> {
+                                android.util.Log.w("AlbumViewViewModel", "Failed to delete from gallery: ${galleryPhoto.displayName}, reason: ${result.reason}")
+                            }
+                            is com.photovault.locker.utils.FileManager.GalleryDeletionResult.PermissionRequired -> {
+                                permissionRequired = true
+                                permissionIntents.add(result.intentSender)
+                                android.util.Log.w("AlbumViewViewModel", "Permission required for: ${galleryPhoto.displayName}")
+                            }
                         }
                     } catch (e: Exception) {
                         android.util.Log.e("AlbumViewViewModel", "Error deleting from gallery: ${galleryPhoto.displayName}, ${e.message}")
                     }
                 }
                 
-                android.util.Log.d("AlbumViewViewModel", "Gallery deletion completed. Success count: $successCount")
-                _galleryDeletionResult.value = Pair(successCount > 0, successCount)
+                android.util.Log.d("AlbumViewViewModel", "Gallery deletion completed. Success count: $successCount, Permission required: $permissionRequired")
+                
+                if (permissionRequired) {
+                    // Store permission intents for the activity to handle
+                    _permissionRequired.value = permissionIntents
+                } else {
+                    _galleryDeletionResult.value = Pair(successCount > 0, successCount)
+                }
                 
             } catch (e: Exception) {
                 android.util.Log.e("AlbumViewViewModel", "Gallery deletion failed with exception: ${e.message}", e)
@@ -233,6 +252,10 @@ class AlbumViewViewModel(
     
     fun skipGalleryDeletion() {
         _galleryDeletionResult.value = Pair(true, 0)
+    }
+    
+    fun retryGalleryDeletion(importedGalleryPhotos: List<GalleryPhoto>) {
+        deleteImportedPhotosFromGallery(importedGalleryPhotos)
     }
     
     
