@@ -62,7 +62,7 @@ class AlbumViewActivity : AppCompatActivity() {
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            // Permission granted, retry deletion
+            // Permission granted, retry batch deletion
             if (importedGalleryPhotos.isNotEmpty()) {
                 viewModel.retryGalleryDeletion(importedGalleryPhotos)
             }
@@ -310,7 +310,8 @@ class AlbumViewActivity : AppCompatActivity() {
         // Observe permission requests for gallery deletion
         viewModel.permissionRequired.observe(this) { intentSenders ->
             if (intentSenders.isNotEmpty()) {
-                // Request permission for the first intent sender
+                // For batch deletion, we typically only need one permission request
+                // as MediaStore handles multiple items in a single operation
                 val intentSender = intentSenders.first()
                 val intentSenderRequest = androidx.activity.result.IntentSenderRequest.Builder(intentSender).build()
                 requestDeletePermissionLauncher.launch(intentSenderRequest)

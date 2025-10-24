@@ -87,15 +87,43 @@ class FileManager(private val context: Context) {
     }
     
     /**
+     * Delete multiple photos from gallery using MediaStore API batch operations (Android 11+)
+     * This is the most efficient method for Android 11+ devices
+     */
+    fun deleteMultiplePhotosFromGallery(uris: List<Uri>): BatchGalleryDeletionResult {
+        return try {
+            Log.d(TAG, "Attempting to delete ${uris.size} photos from gallery using batch operation")
+            Log.d(TAG, "Android version: ${Build.VERSION.SDK_INT}, API level: ${Build.VERSION_CODES.R}")
+            
+            // Use MediaStore batch delete API (Android 11+)
+            val deleteRequest = MediaStore.createDeleteRequest(context.contentResolver, uris)
+            
+            Log.d(TAG, "MediaStore batch delete request created for ${uris.size} photos")
+            
+            // The system will handle the permission request automatically
+            // We need to return the pending intent for the user to approve
+            val pendingIntent = deleteRequest
+            val intentSender = pendingIntent.intentSender
+            
+            Log.d(TAG, "IntentSender created for batch deletion")
+            BatchGalleryDeletionResult.PermissionRequired(listOf(intentSender))
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating batch delete request: ${e.message}", e)
+            BatchGalleryDeletionResult.Failed("Batch delete request failed: ${e.message}")
+        }
+    }
+    
+    /**
      * Enhanced method to delete photo from gallery with proper permission handling
      * Returns a result that includes whether permission is needed
      */
     fun deletePhotoFromGalleryWithPermission(uri: Uri): GalleryDeletionResult {
         return try {
             Log.d(TAG, "Attempting to delete photo from gallery: $uri")
-            Log.d(TAG, "Android version: ${Build.VERSION.SDK_INT}, API level: ${Build.VERSION_CODES.Q}")
+            Log.d(TAG, "Android version: ${Build.VERSION.SDK_INT}, API level: ${Build.VERSION_CODES.R}")
             
-            // Use MediaStore API for scoped storage (Android 10+)
+            // Use MediaStore API for scoped storage (Android 11+)
             val rowsDeleted = context.contentResolver.delete(uri, null, null)
             
             Log.d(TAG, "ContentResolver.delete() returned: $rowsDeleted rows deleted")
@@ -112,14 +140,12 @@ class FileManager(private val context: Context) {
             Log.e(TAG, "SecurityException type: ${e.javaClass.simpleName}")
             Log.e(TAG, "SecurityException message: ${e.message}")
             
-            // For Android 10+, handle RecoverableSecurityException
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                if (e is android.app.RecoverableSecurityException) {
-                    Log.w(TAG, "RecoverableSecurityException - user permission required: $uri")
-                    val intentSender = e.userAction.actionIntent.intentSender
-                    Log.w(TAG, "IntentSender available: ${intentSender != null}")
-                    return GalleryDeletionResult.PermissionRequired(intentSender)
-                }
+            // For Android 11+, handle RecoverableSecurityException
+            if (e is android.app.RecoverableSecurityException) {
+                Log.w(TAG, "RecoverableSecurityException - user permission required: $uri")
+                val intentSender = e.userAction.actionIntent.intentSender
+                Log.w(TAG, "IntentSender available: ${intentSender != null}")
+                return GalleryDeletionResult.PermissionRequired(intentSender)
             }
             GalleryDeletionResult.Failed("SecurityException: ${e.message}")
         } catch (e: Exception) {
@@ -137,6 +163,15 @@ class FileManager(private val context: Context) {
         object Success : GalleryDeletionResult()
         data class Failed(val reason: String) : GalleryDeletionResult()
         data class PermissionRequired(val intentSender: android.content.IntentSender) : GalleryDeletionResult()
+    }
+    
+    /**
+     * Result of batch gallery deletion attempt
+     */
+    sealed class BatchGalleryDeletionResult {
+        data class Success(val deletedCount: Int, val failedCount: Int) : BatchGalleryDeletionResult()
+        data class Failed(val reason: String) : BatchGalleryDeletionResult()
+        data class PermissionRequired(val intentSenders: List<android.content.IntentSender>) : BatchGalleryDeletionResult()
     }
     
     fun deletePhotoFromAppStorage(filePath: String): Boolean {
