@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import android.os.Bundle
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
@@ -12,6 +13,7 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.google.android.gms.ads.mediation.admob.AdMobAdapter
 
 object AdManager {
     
@@ -72,8 +74,11 @@ object AdManager {
             AdRequest.Builder().build()
         } else {
             Log.d(TAG, "Loading non-personalized banner ad")
+            val extras = Bundle().apply {
+                putString("npa", "1") // npa = non-personalized ads
+            }
             AdRequest.Builder()
-                .setNonPersonalizedAds(true)
+                .addNetworkExtrasBundle(AdMobAdapter::class.java, extras)
                 .build()
         }
         adView.loadAd(adRequest)
@@ -104,8 +109,11 @@ object AdManager {
             AdRequest.Builder().build()
         } else {
             Log.d(TAG, "Loading non-personalized interstitial ad")
+            val extras = Bundle().apply {
+                putString("npa", "1") // npa = non-personalized ads
+            }
             AdRequest.Builder()
-                .setNonPersonalizedAds(true)
+                .addNetworkExtrasBundle(AdMobAdapter::class.java, extras)
                 .build()
         }
         
