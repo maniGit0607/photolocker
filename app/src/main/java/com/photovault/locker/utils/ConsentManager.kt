@@ -59,6 +59,13 @@ object ConsentManager {
         onConsentReceived: (Boolean) -> Unit,
         onConsentError: (String) -> Unit
     ) {
+        // Ensure we have an Activity context
+        if (context !is android.app.Activity) {
+            Log.e(TAG, "Context must be an Activity for UMP SDK")
+            onConsentError("Context must be an Activity")
+            return
+        }
+        
         val consentInformation = UserMessagingPlatform.getConsentInformation(context)
         
         // Check if consent is already obtained
@@ -99,6 +106,13 @@ object ConsentManager {
         onConsentReceived: (Boolean) -> Unit,
         onConsentError: (String) -> Unit
     ) {
+        // Ensure we have an Activity context
+        if (context !is android.app.Activity) {
+            Log.e(TAG, "Context must be an Activity for UMP SDK")
+            onConsentError("Context must be an Activity")
+            return
+        }
+        
         UserMessagingPlatform.loadConsentForm(
             context,
             { consentForm ->
@@ -108,7 +122,7 @@ object ConsentManager {
                 if (consentInformation.consentStatus == ConsentInformation.ConsentStatus.REQUIRED) {
                     Log.d(TAG, "Showing consent form")
                     consentForm.show(
-                        context as android.app.Activity,
+                        context,
                         { formError ->
                             Log.e(TAG, "Consent form error: ${formError.message}")
                             onConsentError("Consent form error: ${formError.message}")
