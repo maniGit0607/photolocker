@@ -189,3 +189,6 @@ Before submitting to Google Play:
 **Last Updated**: October 16, 2025
 **Status**: Permission fixes complete, awaiting privacy policy and ad consent implementation
 
+
+
+

@@ -15,3 +15,6 @@ class SquareFrameLayout @JvmOverloads constructor(
         super.onMeasure(widthMeasureSpec, widthMeasureSpec)
     }
 }
+
+
+

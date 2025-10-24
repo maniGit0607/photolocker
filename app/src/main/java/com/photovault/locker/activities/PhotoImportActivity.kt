@@ -354,15 +354,28 @@ class PhotoImportActivity : AppCompatActivity() {
     }
     
     private fun setupAds() {
-        // Initialize AdMob
-        AdManager.initialize(this) {
-            // Check if it's time to show ad based on frequency (every 3rd import)
-            if (AdManager.shouldShowPhotoImportAd(this)) {
-                loadInterstitialAd()
-            } else {
-                hasShownAdOnEntry = true // Skip ad this time
+        // Initialize AdMob with consent handling
+        AdManager.initializeWithConsent(
+            context = this,
+            onConsentReceived = { hasConsent ->
+                // Check if it's time to show ad based on frequency (every 3rd import)
+                if (AdManager.shouldShowPhotoImportAd(this)) {
+                    loadInterstitialAd()
+                } else {
+                    hasShownAdOnEntry = true // Skip ad this time
+                }
+                android.util.Log.d("PhotoImportActivity", "Consent received: $hasConsent")
+            },
+            onConsentError = { error ->
+                // Still check for ads even if consent fails (fallback to non-personalized)
+                if (AdManager.shouldShowPhotoImportAd(this)) {
+                    loadInterstitialAd()
+                } else {
+                    hasShownAdOnEntry = true // Skip ad this time
+                }
+                android.util.Log.e("PhotoImportActivity", "Consent error: $error")
             }
-        }
+        )
     }
     
     private fun loadInterstitialAd() {

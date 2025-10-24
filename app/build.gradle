@@ -59,6 +59,9 @@ dependencies {
     // Google AdMob
     implementation 'com.google.android.gms:play-services-ads:22.6.0'
     
+    // Google UMP SDK for GDPR/CCPA consent
+    implementation 'com.google.android.ump:user-messaging-platform:2.1.0'
+    
     kapt 'androidx.room:room-compiler:2.5.0'
     kapt 'com.github.bumptech.glide:compiler:4.15.1'
     

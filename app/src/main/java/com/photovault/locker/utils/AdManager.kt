@@ -35,16 +35,62 @@ object AdManager {
     }
     
     /**
-     * Load and display a banner ad
+     * Initialize consent and AdMob SDK
+     */
+    fun initializeWithConsent(
+        context: Context,
+        onConsentReceived: (Boolean) -> Unit,
+        onConsentError: (String) -> Unit,
+        onComplete: (() -> Unit)? = null
+    ) {
+        // First initialize AdMob
+        initialize(context) {
+            // Then request consent
+            ConsentManager.requestConsent(
+                context = context,
+                onConsentReceived = { hasConsent ->
+                    Log.d(TAG, "Consent received: $hasConsent")
+                    onConsentReceived(hasConsent)
+                    onComplete?.invoke()
+                },
+                onConsentError = { error ->
+                    Log.e(TAG, "Consent error: $error")
+                    onConsentError(error)
+                    onComplete?.invoke()
+                }
+            )
+        }
+    }
+    
+    /**
+     * Load and display a banner ad with consent handling
+     */
+    fun loadBannerAd(adView: AdView, context: Context) {
+        val hasConsent = ConsentManager.hasUserConsented(context)
+        val adRequest = if (hasConsent) {
+            Log.d(TAG, "Loading personalized banner ad")
+            AdRequest.Builder().build()
+        } else {
+            Log.d(TAG, "Loading non-personalized banner ad")
+            AdRequest.Builder()
+                .setNonPersonalizedAds(true)
+                .build()
+        }
+        adView.loadAd(adRequest)
+        Log.d(TAG, "Banner ad loading... (Consent: $hasConsent)")
+    }
+    
+    /**
+     * Load and display a banner ad (legacy method for backward compatibility)
      */
     fun loadBannerAd(adView: AdView) {
         val adRequest = AdRequest.Builder().build()
         adView.loadAd(adRequest)
-        Log.d(TAG, "Banner ad loading...")
+        Log.d(TAG, "Banner ad loading... (No consent context - using personalized)")
     }
     
     /**
-     * Load an interstitial ad
+     * Load an interstitial ad with consent handling
      */
     fun loadInterstitialAd(
         context: Context,
@@ -52,7 +98,16 @@ object AdManager {
         onAdLoaded: (InterstitialAd) -> Unit,
         onAdFailedToLoad: (LoadAdError) -> Unit
     ) {
-        val adRequest = AdRequest.Builder().build()
+        val hasConsent = ConsentManager.hasUserConsented(context)
+        val adRequest = if (hasConsent) {
+            Log.d(TAG, "Loading personalized interstitial ad")
+            AdRequest.Builder().build()
+        } else {
+            Log.d(TAG, "Loading non-personalized interstitial ad")
+            AdRequest.Builder()
+                .setNonPersonalizedAds(true)
+                .build()
+        }
         
         InterstitialAd.load(
             context,

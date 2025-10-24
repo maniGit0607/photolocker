@@ -60,3 +60,6 @@ A secure Android application that allows users to import photos from their devic
 
 This app permanently deletes imported photos from your device gallery. Make sure you have backups of important photos before using this app.
 
+
+
+

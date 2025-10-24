@@ -108,11 +108,20 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun setupAds() {
-        // Initialize AdMob
-        AdManager.initialize(this) {
-            // Load banner ad after initialization
-            AdManager.loadBannerAd(binding.adView)
-        }
+        // Initialize AdMob with consent handling
+        AdManager.initializeWithConsent(
+            context = this,
+            onConsentReceived = { hasConsent ->
+                // Load banner ad with consent status
+                AdManager.loadBannerAd(binding.adView, this)
+                android.util.Log.d("MainActivity", "Consent received: $hasConsent")
+            },
+            onConsentError = { error ->
+                // Still load ads even if consent fails (fallback to non-personalized)
+                AdManager.loadBannerAd(binding.adView, this)
+                android.util.Log.e("MainActivity", "Consent error: $error")
+            }
+        )
     }
     
     private fun observeData() {
