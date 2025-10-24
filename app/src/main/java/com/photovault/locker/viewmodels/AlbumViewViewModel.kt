@@ -209,9 +209,12 @@ class AlbumViewViewModel(
                 android.util.Log.d("AlbumViewViewModel", "Starting gallery deletion of ${importedGalleryPhotos.size} photos")
                 
                 val uris = importedGalleryPhotos.map { it.uri }
+                android.util.Log.d("AlbumViewViewModel", "URIs to delete: $uris")
                 
-                // Use fallback approach to prevent repeated permission dialogs
+                // Use MediaStore batch API
                 val result = fileManager.deleteMultiplePhotosFromGalleryWithFallback(uris)
+                
+                android.util.Log.d("AlbumViewViewModel", "Deletion result: ${result.javaClass.simpleName}")
                 
                 when (result) {
                     is com.photovault.locker.utils.FileManager.BatchGalleryDeletionResult.Success -> {
@@ -224,7 +227,8 @@ class AlbumViewViewModel(
                         _galleryDeletionResult.value = Pair(false, 0)
                     }
                     is com.photovault.locker.utils.FileManager.BatchGalleryDeletionResult.PermissionRequired -> {
-                        android.util.Log.w("AlbumViewViewModel", "Permission required for deletion")
+                        android.util.Log.w("AlbumViewViewModel", "Permission required for deletion. Intent senders: ${result.intentSenders.size}")
+                        android.util.Log.w("AlbumViewViewModel", "Intent senders: $result.intentSenders")
                         _permissionRequired.value = result.intentSenders
                     }
                 }

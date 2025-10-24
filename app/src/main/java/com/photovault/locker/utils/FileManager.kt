@@ -52,65 +52,75 @@ class FileManager(private val context: Context) {
     }
     
     /**
-     * Alternative approach: Try to delete photos directly first, then fall back to batch request
-     * This prevents repeated permission dialogs
+     * Delete multiple photos from gallery using MediaStore API batch operations (Android 11+)
+     * This is the most efficient method for Android 11+ devices
      */
     fun deleteMultiplePhotosFromGalleryWithFallback(uris: List<Uri>): BatchGalleryDeletionResult {
         return try {
-            Log.d(TAG, "Attempting to delete ${uris.size} photos with fallback approach")
+            Log.d(TAG, "Attempting to delete ${uris.size} photos using MediaStore batch API")
+            Log.d(TAG, "Android version: ${Build.VERSION.SDK_INT}, API level: ${Build.VERSION_CODES.R}")
             
+            // First, try to delete photos directly without permission
             var successCount = 0
-            val failedUris = mutableListOf<Uri>()
-            val permissionIntents = mutableListOf<android.content.IntentSender>()
+            val remainingUris = mutableListOf<Uri>()
             
-            // Try to delete each photo directly first
             for (uri in uris) {
                 try {
                     val rowsDeleted = context.contentResolver.delete(uri, null, null)
                     if (rowsDeleted > 0) {
                         successCount++
-                        Log.d(TAG, "Successfully deleted photo: $uri")
+                        Log.d(TAG, "Successfully deleted photo directly: $uri")
                     } else {
-                        failedUris.add(uri)
+                        remainingUris.add(uri)
                         Log.w(TAG, "No rows deleted for URI: $uri")
                     }
                 } catch (e: SecurityException) {
-                    Log.e(TAG, "SecurityException when deleting photo: $uri", e)
-                    if (e is android.app.RecoverableSecurityException) {
-                        val intentSender = e.userAction.actionIntent.intentSender
-                        permissionIntents.add(intentSender)
-                        Log.w(TAG, "Permission required for: $uri")
-                    } else {
-                        failedUris.add(uri)
-                    }
+                    remainingUris.add(uri)
+                    Log.w(TAG, "SecurityException for URI: $uri - will request permission")
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error deleting photo: $uri", e)
-                    failedUris.add(uri)
+                    remainingUris.add(uri)
+                    Log.w(TAG, "Exception for URI: $uri - ${e.message}")
                 }
             }
             
-            Log.d(TAG, "Direct deletion completed. Success: $successCount, Failed: ${failedUris.size}, Permission needed: ${permissionIntents.size}")
+            Log.d(TAG, "Direct deletion completed. Success: $successCount, Remaining: ${remainingUris.size}")
             
-            when {
-                permissionIntents.isNotEmpty() -> {
-                    // Some photos need permission, use batch request for remaining
-                    if (failedUris.isNotEmpty()) {
-                        try {
-                            val batchDeleteRequest = MediaStore.createDeleteRequest(context.contentResolver, failedUris)
-                            val batchIntentSender = batchDeleteRequest.intentSender
-                            permissionIntents.add(batchIntentSender)
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Error creating batch request for failed URIs: ${e.message}")
-                        }
+            if (remainingUris.isEmpty()) {
+                // All photos deleted successfully
+                BatchGalleryDeletionResult.Success(successCount, 0)
+            } else {
+                // Some photos need permission, use MediaStore batch API
+                try {
+                    Log.d(TAG, "Creating MediaStore batch delete request for ${remainingUris.size} remaining photos")
+                    val deleteRequest = MediaStore.createDeleteRequest(context.contentResolver, remainingUris)
+                    
+                    Log.d(TAG, "MediaStore batch delete request created")
+                    
+                    // Get the pending intent from the delete request
+                    val pendingIntent = deleteRequest
+                    val intentSender = pendingIntent.intentSender
+                    
+                    Log.d(TAG, "IntentSender created for batch deletion: ${intentSender != null}")
+                    
+                    if (intentSender != null) {
+                        BatchGalleryDeletionResult.PermissionRequired(listOf(intentSender))
+                    } else {
+                        Log.e(TAG, "IntentSender is null - cannot request permission")
+                        BatchGalleryDeletionResult.Failed("IntentSender is null")
                     }
-                    BatchGalleryDeletionResult.PermissionRequired(permissionIntents)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error creating batch delete request: ${e.message}", e)
+                    if (successCount > 0) {
+                        BatchGalleryDeletionResult.Success(successCount, remainingUris.size)
+                    } else {
+                        BatchGalleryDeletionResult.Failed("Batch delete request failed: ${e.message}")
+                    }
                 }
-                successCount > 0 -> BatchGalleryDeletionResult.Success(successCount, failedUris.size)
-                else -> BatchGalleryDeletionResult.Failed("All deletions failed")
             }
             
         } catch (e: Exception) {
-            Log.e(TAG, "Error in fallback deletion: ${e.message}", e)
+            Log.e(TAG, "Error in deletion process: ${e.message}", e)
+            Log.e(TAG, "Exception type: ${e.javaClass.simpleName}")
             BatchGalleryDeletionResult.Failed("Deletion failed: ${e.message}")
         }
     }

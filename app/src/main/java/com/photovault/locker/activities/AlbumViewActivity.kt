@@ -320,13 +320,26 @@ class AlbumViewActivity : AppCompatActivity() {
         
         // Observe permission requests for gallery deletion
         viewModel.permissionRequired.observe(this) { intentSenders ->
+            android.util.Log.d("AlbumViewActivity", "Permission required observed: ${intentSenders.size} intent senders")
+            android.util.Log.d("AlbumViewActivity", "Permission request in progress: $isPermissionRequestInProgress")
+            
             if (intentSenders.isNotEmpty() && !isPermissionRequestInProgress) {
                 // For batch deletion, we typically only need one permission request
                 // as MediaStore handles multiple items in a single operation
                 isPermissionRequestInProgress = true
                 val intentSender = intentSenders.first()
-                val intentSenderRequest = androidx.activity.result.IntentSenderRequest.Builder(intentSender).build()
-                requestDeletePermissionLauncher.launch(intentSenderRequest)
+                
+                android.util.Log.d("AlbumViewActivity", "Launching permission request for intent sender: $intentSender")
+                
+                try {
+                    val intentSenderRequest = androidx.activity.result.IntentSenderRequest.Builder(intentSender).build()
+                    requestDeletePermissionLauncher.launch(intentSenderRequest)
+                    android.util.Log.d("AlbumViewActivity", "Permission request launched successfully")
+                } catch (e: Exception) {
+                    android.util.Log.e("AlbumViewActivity", "Error launching permission request: ${e.message}", e)
+                    isPermissionRequestInProgress = false
+                    Toast.makeText(this, "Error requesting permission: ${e.message}", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
