@@ -10,6 +10,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.photovault.locker.R
 import com.photovault.locker.databinding.ActivityAuthenticationBinding
 import com.photovault.locker.utils.PasswordManager
+import com.photovault.locker.utils.AdManager
+import com.photovault.locker.utils.ConsentManager
 
 class AuthenticationActivity : AppCompatActivity() {
     
@@ -24,8 +26,39 @@ class AuthenticationActivity : AppCompatActivity() {
         
         passwordManager = PasswordManager(this)
         
+        // Initialize consent and AdMob on app launch
+        initializeConsentAndAds()
+        
         setupUI()
         setupListeners()
+    }
+    
+    private fun initializeConsentAndAds() {
+        android.util.Log.d("AuthenticationActivity", "Initializing consent and AdMob...")
+        
+        // Debug: Check current consent status
+        val currentStatus = ConsentManager.getConsentStatusDescription(this)
+        android.util.Log.d("AuthenticationActivity", "Current consent status: $currentStatus")
+        
+        // For testing: Reset consent to force dialog (remove this in production)
+        if (android.os.BuildConfig.DEBUG) {
+            android.util.Log.d("AuthenticationActivity", "DEBUG: Resetting consent for testing")
+            ConsentManager.resetConsent(this)
+        }
+        
+        AdManager.initializeWithConsent(
+            context = this,
+            onConsentReceived = { hasConsent ->
+                android.util.Log.d("AuthenticationActivity", "Consent received: $hasConsent")
+                val newStatus = ConsentManager.getConsentStatusDescription(this)
+                android.util.Log.d("AuthenticationActivity", "New consent status: $newStatus")
+                // Consent dialog will be shown automatically if needed
+            },
+            onConsentError = { error ->
+                android.util.Log.e("AuthenticationActivity", "Consent error: $error")
+                // Continue with app even if consent fails
+            }
+        )
     }
     
     private fun setupUI() {

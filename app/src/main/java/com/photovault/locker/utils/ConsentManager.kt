@@ -59,6 +59,8 @@ object ConsentManager {
         onConsentReceived: (Boolean) -> Unit,
         onConsentError: (String) -> Unit
     ) {
+        Log.d(TAG, "Requesting consent...")
+        
         // Ensure we have an Activity context
         if (context !is android.app.Activity) {
             Log.e(TAG, "Context must be an Activity for UMP SDK")
@@ -67,15 +69,21 @@ object ConsentManager {
         }
         
         val consentInformation = UserMessagingPlatform.getConsentInformation(context)
+        val currentStatus = consentInformation.consentStatus
+        val canRequest = consentInformation.canRequestAds()
+        
+        Log.d(TAG, "Current consent status: $currentStatus")
+        Log.d(TAG, "Can request ads: $canRequest")
         
         // Check if consent is already obtained
-        if (consentInformation.canRequestAds()) {
-            Log.d(TAG, "Consent can be requested")
+        if (canRequest) {
+            Log.d(TAG, "Consent can be requested - proceeding with consent flow")
             
             val params = ConsentRequestParameters.Builder()
                 .setTagForUnderAgeOfConsent(false) // Set to true if your app is directed to children
                 .build()
             
+            Log.d(TAG, "Requesting consent info update...")
             consentInformation.requestConsentInfoUpdate(
                 context,
                 params,
@@ -85,12 +93,12 @@ object ConsentManager {
                 },
                 { formError ->
                     Log.e(TAG, "Consent info update failed: ${formError.message}")
+                    Log.e(TAG, "Error code: ${formError.code}")
                     onConsentError("Failed to update consent info: ${formError.message}")
                 }
             )
         } else {
-            Log.d(TAG, "Consent cannot be requested, using current status")
-            val currentStatus = consentInformation.consentStatus
+            Log.d(TAG, "Consent cannot be requested, using current status: $currentStatus")
             setConsentStatus(context, currentStatus)
             val hasConsent = currentStatus == ConsentInformation.ConsentStatus.OBTAINED
             setUserConsent(context, hasConsent)
@@ -106,6 +114,8 @@ object ConsentManager {
         onConsentReceived: (Boolean) -> Unit,
         onConsentError: (String) -> Unit
     ) {
+        Log.d(TAG, "Loading consent form...")
+        
         // Ensure we have an Activity context
         if (context !is android.app.Activity) {
             Log.e(TAG, "Context must be an Activity for UMP SDK")
@@ -119,26 +129,42 @@ object ConsentManager {
                 Log.d(TAG, "Consent form loaded successfully")
                 
                 val consentInformation = UserMessagingPlatform.getConsentInformation(context)
-                if (consentInformation.consentStatus == ConsentInformation.ConsentStatus.REQUIRED) {
-                    Log.d(TAG, "Showing consent form")
+                val status = consentInformation.consentStatus
+                Log.d(TAG, "Consent status before showing form: $status")
+                
+                if (status == ConsentInformation.ConsentStatus.REQUIRED) {
+                    Log.d(TAG, "Consent is required - showing consent form")
                     consentForm.show(
                         context,
                         { formError ->
-                            Log.e(TAG, "Consent form error: ${formError?.message}")
-                            onConsentError("Consent form error: ${formError?.message}")
+                            if (formError != null) {
+                                Log.e(TAG, "Consent form error: ${formError.message}")
+                                Log.e(TAG, "Error code: ${formError.code}")
+                                onConsentError("Consent form error: ${formError.message}")
+                            } else {
+                                Log.d(TAG, "Consent form dismissed by user")
+                                // Handle the result after form is dismissed
+                                val finalStatus = consentInformation.consentStatus
+                                Log.d(TAG, "Final consent status: $finalStatus")
+                                setConsentStatus(context, finalStatus)
+                                val hasConsent = finalStatus == ConsentInformation.ConsentStatus.OBTAINED
+                                setUserConsent(context, hasConsent)
+                                onConsentReceived(hasConsent)
+                            }
                         }
                     )
+                } else {
+                    Log.d(TAG, "Consent not required - status: $status")
+                    // Handle consent result
+                    setConsentStatus(context, status)
+                    val hasConsent = status == ConsentInformation.ConsentStatus.OBTAINED
+                    setUserConsent(context, hasConsent)
+                    onConsentReceived(hasConsent)
                 }
-                
-                // Handle consent result
-                val status = consentInformation.consentStatus
-                setConsentStatus(context, status)
-                val hasConsent = status == ConsentInformation.ConsentStatus.OBTAINED
-                setUserConsent(context, hasConsent)
-                onConsentReceived(hasConsent)
             },
             { formError ->
                 Log.e(TAG, "Failed to load consent form: ${formError.message}")
+                Log.e(TAG, "Error code: ${formError.code}")
                 onConsentError("Failed to load consent form: ${formError.message}")
             }
         )
@@ -148,13 +174,17 @@ object ConsentManager {
      * Reset consent (for testing purposes)
      */
     fun resetConsent(context: Context) {
-        val consentInformation = UserMessagingPlatform.getConsentInformation(context)
-        consentInformation.reset()
-        
-        val prefs = context.getSharedPreferences(CONSENT_PREF, Context.MODE_PRIVATE)
-        prefs.edit().clear().apply()
-        
-        Log.d(TAG, "Consent reset")
+        try {
+            val consentInformation = UserMessagingPlatform.getConsentInformation(context)
+            consentInformation.reset()
+            
+            val prefs = context.getSharedPreferences(CONSENT_PREF, Context.MODE_PRIVATE)
+            prefs.edit().clear().apply()
+            
+            Log.d(TAG, "Consent reset successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error resetting consent: ${e.message}", e)
+        }
     }
     
     /**
