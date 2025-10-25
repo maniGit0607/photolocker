@@ -93,7 +93,6 @@ object ConsentManager {
                 },
                 { formError ->
                     Log.e(TAG, "Consent info update failed: ${formError.message}")
-                    Log.e(TAG, "Error code: ${formError.code}")
                     onConsentError("Failed to update consent info: ${formError.message}")
                 }
             )
@@ -139,7 +138,6 @@ object ConsentManager {
                         { formError ->
                             if (formError != null) {
                                 Log.e(TAG, "Consent form error: ${formError.message}")
-                                Log.e(TAG, "Error code: ${formError.code}")
                                 onConsentError("Consent form error: ${formError.message}")
                             } else {
                                 Log.d(TAG, "Consent form dismissed by user")
@@ -164,7 +162,6 @@ object ConsentManager {
             },
             { formError ->
                 Log.e(TAG, "Failed to load consent form: ${formError.message}")
-                Log.e(TAG, "Error code: ${formError.code}")
                 onConsentError("Failed to load consent form: ${formError.message}")
             }
         )

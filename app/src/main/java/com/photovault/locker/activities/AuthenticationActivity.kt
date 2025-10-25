@@ -41,7 +41,7 @@ class AuthenticationActivity : AppCompatActivity() {
         android.util.Log.d("AuthenticationActivity", "Current consent status: $currentStatus")
         
         // For testing: Reset consent to force dialog (remove this in production)
-        if (android.os.BuildConfig.DEBUG) {
+        if (com.photovault.locker.BuildConfig.DEBUG) {
             android.util.Log.d("AuthenticationActivity", "DEBUG: Resetting consent for testing")
             ConsentManager.resetConsent(this)
         }
