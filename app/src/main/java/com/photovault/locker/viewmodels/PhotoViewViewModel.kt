@@ -101,6 +101,21 @@ class PhotoViewViewModel(
         }
     }
     
+    fun setCoverPhoto(photo: Photo) {
+        viewModelScope.launch {
+            try {
+                // Only set cover photo if not in favorites mode
+                if (!isFavoritesMode) {
+                    albumDao.updateCoverPhoto(albumId, photo.filePath)
+                    android.util.Log.d("PhotoViewViewModel", "Cover photo updated to: ${photo.filePath}")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PhotoViewViewModel", "Failed to set cover photo: ${e.message}")
+                _error.value = "Failed to set cover photo: ${e.message}"
+            }
+        }
+    }
+    
     class Factory(
         private val application: Application,
         private val albumId: Long,

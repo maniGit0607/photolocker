@@ -72,6 +72,15 @@ class PhotoViewActivity : AppCompatActivity() {
             toggleFavoriteForCurrentPhoto()
         }
         
+        binding.btnSetCover.setOnClickListener {
+            setCurrentPhotoAsCover()
+        }
+        
+        // Hide the set cover button in favorites mode
+        if (isFavoritesMode) {
+            binding.btnSetCover.visibility = View.GONE
+        }
+        
         binding.btnDelete.setOnClickListener {
             showDeleteConfirmation()
         }
@@ -170,6 +179,15 @@ class PhotoViewActivity : AppCompatActivity() {
                 "Added to favorites"
             }
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun setCurrentPhotoAsCover() {
+        val currentPosition = binding.viewPager.currentItem
+        if (currentPosition < photos.size) {
+            val currentPhoto = photos[currentPosition]
+            viewModel.setCoverPhoto(currentPhoto)
+            Toast.makeText(this, "Set as album cover", Toast.LENGTH_SHORT).show()
         }
     }
     
