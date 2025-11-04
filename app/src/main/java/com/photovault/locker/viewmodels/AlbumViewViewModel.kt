@@ -133,6 +133,38 @@ class AlbumViewViewModel(
         }
     }
     
+    fun createAlbumAndMovePhotos(albumName: String, photoIds: List<Long>, callback: (Boolean, String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                // Check if album already exists
+                val existingAlbum = albumDao.getAlbumByName(albumName)
+                if (existingAlbum != null) {
+                    callback(false, "Album with this name already exists")
+                    return@launch
+                }
+                
+                // Create new album
+                val newAlbum = com.photovault.locker.models.Album(
+                    name = albumName,
+                    createdDate = java.util.Date()
+                )
+                
+                val newAlbumId = albumDao.insertAlbum(newAlbum)
+                android.util.Log.d("AlbumViewViewModel", "Created new album: $albumName with id: $newAlbumId")
+                
+                // Move photos to the new album
+                movePhotosToAlbum(photoIds, newAlbumId)
+                
+                callback(true, albumName)
+                
+            } catch (e: Exception) {
+                android.util.Log.e("AlbumViewViewModel", "Failed to create album and move photos: ${e.message}")
+                _error.value = "Failed to create album and move photos: ${e.message}"
+                callback(false, "Failed to create album: ${e.message}")
+            }
+        }
+    }
+    
     private suspend fun getCurrentCoverPhotoPath(): String? {
         return albumDao.getCoverPhotoSync(albumId)
     }

@@ -453,11 +453,8 @@ class AlbumViewActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 try {
                     val albums = viewModel.getAllAlbumsExceptCurrentSync()
-                    if (albums.isNotEmpty()) {
-                        showAlbumSelectionDialog(albums, selectedPhotos)
-                    } else {
-                        Toast.makeText(this@AlbumViewActivity, "No other albums available", Toast.LENGTH_SHORT).show()
-                    }
+                    // Always show the dialog, even if no albums (user can create new album)
+                    showAlbumSelectionDialog(albums, selectedPhotos)
                 } catch (e: Exception) {
                     Toast.makeText(this@AlbumViewActivity, "Failed to load albums: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
@@ -469,8 +466,12 @@ class AlbumViewActivity : AppCompatActivity() {
         // Create a custom dialog with ListView
         val listView = android.widget.ListView(this)
         
+        // Create a list with "Create new album" option at the top
+        val albumNames = mutableListOf("+ Create new album")
+        albumNames.addAll(albums.map { it.name })
+        
         // Create adapter for the list
-        val adapter = android.widget.ArrayAdapter(this, android.R.layout.simple_list_item_1, albums.map { it.name })
+        val adapter = android.widget.ArrayAdapter(this, android.R.layout.simple_list_item_1, albumNames)
         listView.adapter = adapter
         
         // Create dialog
@@ -483,9 +484,16 @@ class AlbumViewActivity : AppCompatActivity() {
         
         // Set click listener for list items
         listView.setOnItemClickListener { _, _, position, _ ->
-            val selectedAlbum = albums[position]
-            movePhotosToAlbum(selectedPhotos, selectedAlbum.id, selectedAlbum.name)
-            dialog.dismiss()
+            if (position == 0) {
+                // "Create new album" option clicked
+                dialog.dismiss()
+                showCreateAlbumAndMoveDialog(selectedPhotos)
+            } else {
+                // Existing album clicked (position - 1 because of the "Create new album" at index 0)
+                val selectedAlbum = albums[position - 1]
+                movePhotosToAlbum(selectedPhotos, selectedAlbum.id, selectedAlbum.name)
+                dialog.dismiss()
+            }
         }
         
         dialog.show()
@@ -507,12 +515,56 @@ class AlbumViewActivity : AppCompatActivity() {
                     val child = listView.getChildAt(i)
                     if (child is android.widget.TextView) {
                         child.setTextColor(android.graphics.Color.BLACK)
+                        // Make "Create new album" option bold
+                        if (i == 0) {
+                            child.setTypeface(child.typeface, android.graphics.Typeface.BOLD)
+                        }
                     }
                 }
             }
         }
     }
     
+    private fun showCreateAlbumAndMoveDialog(selectedPhotos: List<Long>) {
+        val dialogBinding = com.photovault.locker.databinding.DialogCreateAlbumBinding.inflate(layoutInflater)
+        
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogBinding.root)
+            .create()
+        
+        // Update dialog title text
+        dialogBinding.root.findViewById<android.widget.TextView>(android.R.id.text1)?.let { titleView ->
+            // The title TextView is the first TextView in the layout
+        }
+        
+        dialogBinding.btnCreate.setOnClickListener {
+            val albumName = dialogBinding.etAlbumName.text.toString().trim()
+            
+            if (albumName.isEmpty()) {
+                dialogBinding.tilAlbumName.error = getString(R.string.album_name_required)
+                return@setOnClickListener
+            }
+            
+            // Create album and move photos
+            viewModel.createAlbumAndMovePhotos(albumName, selectedPhotos) { success, message ->
+                if (success) {
+                    dialog.dismiss()
+                    photoAdapter.disableSelectionMode()
+                    updateSelectionCount()
+                    invalidateOptionsMenu()
+                    Toast.makeText(this, "Photos moved to $message", Toast.LENGTH_SHORT).show()
+                } else {
+                    dialogBinding.tilAlbumName.error = message
+                }
+            }
+        }
+        
+        dialogBinding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        dialog.show()
+    }
     
     private fun movePhotosToAlbum(photoIds: List<Long>, targetAlbumId: Long, targetAlbumName: String) {
         viewModel.movePhotosToAlbum(photoIds, targetAlbumId)
