@@ -74,7 +74,7 @@ class PhotoAdapter(
                         
                         override fun onResourceReady(
                             resource: android.graphics.drawable.Drawable,
-                            model: Any?,
+                            model: Any,
                             target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>,
                             dataSource: com.bumptech.glide.load.DataSource,
                             isFirstResource: Boolean

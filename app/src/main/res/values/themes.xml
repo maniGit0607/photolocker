@@ -14,11 +14,15 @@
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Background color -->
         <item name="android:windowBackground">@color/background_color</item>
+        <!-- Prevent edge-to-edge overlap with system UI -->
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="p">shortEdges</item>
     </style>
     
     <style name="Theme.PhotoVaultLocker.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <!-- Ensure content fits within system windows -->
+        <item name="android:fitsSystemWindows">true</item>
     </style>
     
     <style name="Theme.PhotoVaultLocker.FullScreen">
