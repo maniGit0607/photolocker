@@ -35,9 +35,15 @@ class BinActivity : AppCompatActivity() {
     }
     
     private fun setupToolbar() {
-        // Set up default ActionBar
+        // Set up MaterialToolbar
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.title = "Bin"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        
+        // Handle navigation icon click
+        binding.toolbar.setNavigationOnClickListener {
+            finish()
+        }
     }
     
     private fun setupViewModel() {

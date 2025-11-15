@@ -71,7 +71,7 @@
             android:name=".activities.BinActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhotoVaultLocker" />
+            android:theme="@style/Theme.PhotoVaultLocker.NoActionBar" />
 
         <!-- Favorites Activity -->
         <activity
