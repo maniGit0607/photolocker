@@ -24,7 +24,7 @@
         <!-- AdMob App ID -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713"/>
+            android:value="ca-app-pub-3869871705982850~8010457774"/>
         
         <!-- Password/Authentication Activity (Main Entry Point) -->
         <activity

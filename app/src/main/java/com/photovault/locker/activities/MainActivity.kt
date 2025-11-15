@@ -257,8 +257,8 @@ class MainActivity : AppCompatActivity() {
     
     private fun showAboutDialog() {
         MaterialAlertDialogBuilder(this)
-            .setTitle("About Shivdi Photo Vault")
-            .setMessage("Shivdi Photo Vault\nVersion 1.0\n\nA secure photo vault application to keep your photos private and protected.\n\nBy Shivdi Apps")
+            .setTitle("About Privacy Photo Vault")
+            .setMessage("Privacy Photo Vault\nVersion 1.0\n\nA secure photo vault application to keep your photos private and protected.\n\nBy AthiVLabs")
             .setPositiveButton("OK", null)
             .setNeutralButton("Privacy Policy") { _, _ ->
                 openPrivacyPolicy()

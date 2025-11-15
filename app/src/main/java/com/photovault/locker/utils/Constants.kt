@@ -5,8 +5,8 @@ object Constants {
     const val RESTORED_ALBUM_NAME = "Restored"
     
     // AdMob Test Ad Unit IDs (replace with your real IDs in production)
-    const val BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111"  // Test Banner
-    const val INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"  // Test Interstitial
+    const val BANNER_AD_UNIT_ID = "ca-app-pub-3869871705982850/6753216424"  // Test Banner
+    const val INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3869871705982850/4374465091"  // Test Interstitial
     
     // Ad frequency settings - Moderate option (balanced monetization and UX)
     const val ALBUM_VIEW_AD_FREQUENCY = 5     // Show interstitial ad every 5th album view
