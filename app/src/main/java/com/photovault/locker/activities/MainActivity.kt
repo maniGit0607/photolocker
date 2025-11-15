@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -138,9 +137,7 @@ class MainActivity : AppCompatActivity() {
         }
         
         viewModel.error.observe(this) { error ->
-            if (error.isNotEmpty()) {
-                Toast.makeText(this, error, Toast.LENGTH_LONG).show()
-            }
+            // Error handling removed
         }
     }
     
@@ -272,7 +269,7 @@ class MainActivity : AppCompatActivity() {
         try {
             startActivity(intent)
         } catch (e: Exception) {
-            Toast.makeText(this, "Cannot open privacy policy", Toast.LENGTH_SHORT).show()
+            // Error opening privacy policy
         }
     }
     
@@ -295,7 +292,7 @@ class MainActivity : AppCompatActivity() {
                         intent.data = uri
                         startActivity(intent)
                     } catch (e: Exception) {
-                        Toast.makeText(this, "Please enable storage permission in system settings", Toast.LENGTH_LONG).show()
+                        // Error opening settings
                     }
                 } else {
                     requestPermissions()
@@ -323,7 +320,6 @@ class MainActivity : AppCompatActivity() {
             viewModel.createAlbum(albumName) { success ->
                 if (success) {
                     dialog.dismiss()
-                    Toast.makeText(this, getString(R.string.album_created), Toast.LENGTH_SHORT).show()
                 } else {
                     dialogBinding.tilAlbumName.error = getString(R.string.album_exists)
                 }
@@ -366,7 +362,6 @@ class MainActivity : AppCompatActivity() {
             viewModel.renameAlbum(album, newName) { success ->
                 if (success) {
                     dialog.dismiss()
-                    Toast.makeText(this, "Album renamed successfully", Toast.LENGTH_SHORT).show()
                 } else {
                     dialogBinding.tilAlbumName.error = getString(R.string.album_exists)
                 }
@@ -406,7 +401,6 @@ class MainActivity : AppCompatActivity() {
             .setMessage(getString(R.string.delete_album_confirmation))
             .setPositiveButton(getString(R.string.delete)) { _, _ ->
                 viewModel.deleteAlbum(album)
-                Toast.makeText(this, "Album deleted", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton(getString(R.string.cancel), null)
             .show()

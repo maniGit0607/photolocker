@@ -3,7 +3,7 @@ package com.photovault.locker.activities
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
+
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -57,7 +57,7 @@ class AlbumViewActivity : AppCompatActivity() {
         if (allGranted) {
             startPhotoImportActivity()
         } else {
-            Toast.makeText(this, "Storage permission is required to import photos", Toast.LENGTH_LONG).show()
+
         }
     }
     
@@ -69,7 +69,7 @@ class AlbumViewActivity : AppCompatActivity() {
         if (result.resultCode == RESULT_OK) {
             // Permission granted, deletion will be completed by system
             android.util.Log.d("AlbumViewActivity", "Permission granted, automatic deletion will be completed by system")
-            Toast.makeText(this, "✓ Photos will be removed from gallery", Toast.LENGTH_SHORT).show()
+
             
             // Don't retry - the system handles the deletion automatically
             // The MediaStore batch delete request will complete the deletion
@@ -95,14 +95,13 @@ class AlbumViewActivity : AppCompatActivity() {
                 ?.mapNotNull { it as? GalleryPhoto } ?: emptyList()
             
             if (importedCount > 0 && galleryPhotos.isNotEmpty()) {
-                // Store the gallery photos for automatic deletion
+                // Store the gallery photos for potential deletion
                 importedGalleryPhotos = galleryPhotos
                 
-                // Automatically delete photos from gallery after a short delay
+                // Show dialog after 3 seconds asking user if they want to delete from gallery
                 binding.rvPhotos.postDelayed({
-                    android.util.Log.d("AlbumViewActivity", "Starting automatic gallery deletion for ${galleryPhotos.size} photos")
-                    viewModel.deleteImportedPhotosFromGallery(galleryPhotos)
-                }, 1500) // 1.5 second delay to let user see the photos
+                    showDeleteFromGalleryDialog(galleryPhotos)
+                }, 3000) // 3 second delay
             }
         }
     }
@@ -210,17 +209,17 @@ class AlbumViewActivity : AppCompatActivity() {
     
     private fun setupFab() {
         binding.fabAddPhotos.setOnClickListener {
-            Toast.makeText(this, "FAB clicked!", Toast.LENGTH_SHORT).show()
+
             try {
                 if (PermissionUtils.hasStoragePermissions(this)) {
-                    Toast.makeText(this, "Permissions granted, starting import", Toast.LENGTH_SHORT).show()
+
                     startPhotoImportActivity()
                 } else {
-                    Toast.makeText(this, "Requesting permissions", Toast.LENGTH_SHORT).show()
+
                     requestPermissionLauncher.launch(PermissionUtils.getRequiredPermissions())
                 }
             } catch (e: Exception) {
-                Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+
             }
         }
     }
@@ -292,7 +291,7 @@ class AlbumViewActivity : AppCompatActivity() {
         viewModel.error.observe(this) { error ->
             if (error.isNotEmpty()) {
                 android.util.Log.e("AlbumViewActivity", "Error: $error")
-                Toast.makeText(this, error, Toast.LENGTH_LONG).show()
+
             }
         }
         
@@ -307,7 +306,7 @@ class AlbumViewActivity : AppCompatActivity() {
                     } else {
                         "✓ $deletedCount photos removed from gallery"
                     }
-                    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+
                     android.util.Log.d("AlbumViewActivity", "Automatic gallery deletion completed: $deletedCount photos deleted")
                 }
             } else {
@@ -336,7 +335,7 @@ class AlbumViewActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                     android.util.Log.e("AlbumViewActivity", "Error launching permission request: ${e.message}", e)
                     isPermissionRequestInProgress = false
-                    Toast.makeText(this, "Error requesting permission: ${e.message}", Toast.LENGTH_LONG).show()
+
                 }
             }
         }
@@ -393,7 +392,7 @@ class AlbumViewActivity : AppCompatActivity() {
             gridLayoutManager.spanCount = newSize.columnCount
             photoAdapter.notifyDataSetChanged()
             invalidateOptionsMenu()
-            Toast.makeText(this, "Grid size changed to ${newSize.displayName}", Toast.LENGTH_SHORT).show()
+
         }
     }
 
@@ -413,7 +412,7 @@ class AlbumViewActivity : AppCompatActivity() {
     
     private fun setPhotoAsCover(photo: Photo) {
         viewModel.setCoverPhoto(photo)
-        Toast.makeText(this, "Cover photo updated", Toast.LENGTH_SHORT).show()
+
         // Reload cover photo after setting
         loadCoverPhoto()
     }
@@ -442,7 +441,7 @@ class AlbumViewActivity : AppCompatActivity() {
             viewModel.movePhotosToBin(selectedPhotos)
             photoAdapter.disableSelectionMode()
 
-            Toast.makeText(this, "Photos moved to bin", Toast.LENGTH_SHORT).show()
+
         }
     }
     
@@ -456,7 +455,7 @@ class AlbumViewActivity : AppCompatActivity() {
                     // Always show the dialog, even if no albums (user can create new album)
                     showAlbumSelectionDialog(albums, selectedPhotos)
                 } catch (e: Exception) {
-                    Toast.makeText(this@AlbumViewActivity, "Failed to load albums: ${e.message}", Toast.LENGTH_SHORT).show()
+
                 }
             }
         }
@@ -552,7 +551,7 @@ class AlbumViewActivity : AppCompatActivity() {
                     photoAdapter.disableSelectionMode()
                     updateSelectionCount()
                     invalidateOptionsMenu()
-                    Toast.makeText(this, "Photos moved to $message", Toast.LENGTH_SHORT).show()
+
                 } else {
                     dialogBinding.tilAlbumName.error = message
                 }
@@ -566,12 +565,36 @@ class AlbumViewActivity : AppCompatActivity() {
         dialog.show()
     }
     
+    private fun showDeleteFromGalleryDialog(galleryPhotos: List<GalleryPhoto>) {
+        if (galleryPhotos.isEmpty()) return
+        
+        val message = if (galleryPhotos.size == 1) {
+            "Delete imported photo from gallery?"
+        } else {
+            "Delete ${galleryPhotos.size} imported photos from gallery?"
+        }
+        
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Delete from Gallery")
+            .setMessage(message)
+            .setPositiveButton("Yes") { _, _ ->
+                android.util.Log.d("AlbumViewActivity", "User confirmed deletion of ${galleryPhotos.size} photos from gallery")
+                viewModel.deleteImportedPhotosFromGallery(galleryPhotos)
+            }
+            .setNegativeButton("No") { dialog, _ ->
+                android.util.Log.d("AlbumViewActivity", "User declined deletion from gallery")
+                dialog.dismiss()
+            }
+            .setCancelable(true)
+            .show()
+    }
+    
     private fun movePhotosToAlbum(photoIds: List<Long>, targetAlbumId: Long, targetAlbumName: String) {
         viewModel.movePhotosToAlbum(photoIds, targetAlbumId)
         photoAdapter.disableSelectionMode()
         updateSelectionCount()
         invalidateOptionsMenu()
-        Toast.makeText(this, "Photos moved to $targetAlbumName", Toast.LENGTH_SHORT).show()
+
     }
     
     private fun showActionButtons() {
@@ -605,13 +628,13 @@ class AlbumViewActivity : AppCompatActivity() {
     private fun exportSelectedPhotos() {
         val selectedPhotos = photoAdapter.getSelectedPhotos()
         if (selectedPhotos.isEmpty()) {
-            Toast.makeText(this, "No photos selected", Toast.LENGTH_SHORT).show()
+
             return
         }
         
         // Check if we have storage permissions
         if (!PermissionUtils.hasStoragePermissions(this)) {
-            Toast.makeText(this, "Storage permission is required to export photos", Toast.LENGTH_LONG).show()
+
             requestPermissionLauncher.launch(PermissionUtils.getRequiredPermissions())
             return
         }
@@ -623,7 +646,7 @@ class AlbumViewActivity : AppCompatActivity() {
                 val photosToExport = photos.filter { selectedPhotos.contains(it.id) }
                 
                 if (photosToExport.isEmpty()) {
-                    Toast.makeText(this@AlbumViewActivity, "No photos to export", Toast.LENGTH_SHORT).show()
+
                     return@launch
                 }
                 
@@ -730,7 +753,7 @@ class AlbumViewActivity : AppCompatActivity() {
                     else -> "Failed to export photos"
                 }
                 
-                Toast.makeText(this@AlbumViewActivity, message, Toast.LENGTH_LONG).show()
+
                 
                 // Disable selection mode after export
                 if (successCount > 0) {
@@ -738,7 +761,7 @@ class AlbumViewActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 android.util.Log.e("AlbumViewActivity", "Export failed: ${e.message}")
-                Toast.makeText(this@AlbumViewActivity, "Export failed: ${e.message}", Toast.LENGTH_LONG).show()
+
             }
         }
     }

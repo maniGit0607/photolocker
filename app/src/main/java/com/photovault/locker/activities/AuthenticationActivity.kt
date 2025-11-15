@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.photovault.locker.R
 import com.photovault.locker.databinding.ActivityAuthenticationBinding
@@ -117,7 +116,6 @@ class AuthenticationActivity : AppCompatActivity() {
         }
         
         if (passwordManager.setPassword(password)) {
-            Toast.makeText(this, getString(R.string.password_set_success), Toast.LENGTH_SHORT).show()
             navigateToMainActivity()
         } else {
             showError(getString(R.string.error_occurred))

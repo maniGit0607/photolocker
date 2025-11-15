@@ -2,7 +2,6 @@ package com.photovault.locker.activities
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.widget.ViewPager2
@@ -121,9 +120,7 @@ class PhotoViewActivity : AppCompatActivity() {
         }
         
         viewModel.error.observe(this) { error ->
-            if (error.isNotEmpty()) {
-                Toast.makeText(this, error, Toast.LENGTH_LONG).show()
-            }
+            // Error handling removed
         }
     }
     
@@ -172,13 +169,6 @@ class PhotoViewActivity : AppCompatActivity() {
         if (currentPosition < photos.size) {
             val currentPhoto = photos[currentPosition]
             viewModel.toggleFavorite(currentPhoto.id, currentPhoto.isFavorite)
-            
-            val message = if (currentPhoto.isFavorite) {
-                "Removed from favorites"
-            } else {
-                "Added to favorites"
-            }
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -187,7 +177,6 @@ class PhotoViewActivity : AppCompatActivity() {
         if (currentPosition < photos.size) {
             val currentPhoto = photos[currentPosition]
             viewModel.setCoverPhoto(currentPhoto)
-            Toast.makeText(this, "Set as album cover", Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -215,8 +204,6 @@ class PhotoViewActivity : AppCompatActivity() {
         if (currentPosition < photos.size) {
             val currentPhoto = photos[currentPosition]
             viewModel.deletePhoto(currentPhoto)
-            
-            Toast.makeText(this, "Photo deleted", Toast.LENGTH_SHORT).show()
             
             // If this was the only photo, finish the activity
             if (photos.size == 1) {

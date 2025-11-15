@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
@@ -103,7 +102,6 @@ class BinActivity : AppCompatActivity() {
         viewModel.error.observe(this) { error ->
             if (error.isNotEmpty()) {
                 android.util.Log.e("BinActivity", "Error: $error")
-                Toast.makeText(this, error, Toast.LENGTH_LONG).show()
             }
         }
         
@@ -189,7 +187,6 @@ class BinActivity : AppCompatActivity() {
                 .setPositiveButton("Restore") { _, _ ->
                     viewModel.restorePhotos(selectedPhotos)
                     photoAdapter.disableSelectionMode()
-                    Toast.makeText(this, "Photos restored", Toast.LENGTH_SHORT).show()
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
@@ -211,7 +208,6 @@ class BinActivity : AppCompatActivity() {
                 .setPositiveButton("Delete") { _, _ ->
                     viewModel.permanentlyDeletePhotos(selectedPhotos)
                     photoAdapter.disableSelectionMode()
-                    Toast.makeText(this, "Photos permanently deleted", Toast.LENGTH_SHORT).show()
                 }
                 .setNegativeButton("Cancel", null)
                 .show()

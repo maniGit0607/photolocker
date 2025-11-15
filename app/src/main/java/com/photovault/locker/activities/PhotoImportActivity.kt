@@ -8,7 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
-import android.widget.Toast
+
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -57,33 +57,33 @@ class PhotoImportActivity : AppCompatActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         try {
-            Toast.makeText(this, "PhotoImportActivity onCreate started", Toast.LENGTH_SHORT).show()
+
             super.onCreate(savedInstanceState)
             binding = ActivityPhotoImportBinding.inflate(layoutInflater)
             setContentView(binding.root)
             
-            Toast.makeText(this, "Getting intent extras", Toast.LENGTH_SHORT).show()
+
             getIntentExtras()
             
-            Toast.makeText(this, "Setting up UI", Toast.LENGTH_SHORT).show()
+
             setupToolbar()
             setupViewModel()
             setupRecyclerView()
             setupListeners()
             setupAds()
             
-            Toast.makeText(this, "Checking permissions", Toast.LENGTH_SHORT).show()
+
             if (PermissionUtils.hasStoragePermissions(this)) {
-                Toast.makeText(this, "Permissions granted, loading photos", Toast.LENGTH_SHORT).show()
+
                 loadGalleryPhotos()
             } else {
-                Toast.makeText(this, "Requesting permissions", Toast.LENGTH_SHORT).show()
+
                 requestPermissions()
             }
             
-            Toast.makeText(this, "PhotoImportActivity onCreate completed", Toast.LENGTH_SHORT).show()
+
         } catch (e: Exception) {
-            Toast.makeText(this, "Error in PhotoImportActivity onCreate: ${e.message}", Toast.LENGTH_LONG).show()
+
             finish()
         }
     }
@@ -92,10 +92,10 @@ class PhotoImportActivity : AppCompatActivity() {
         albumId = intent.getLongExtra("album_id", -1)
         albumName = intent.getStringExtra("album_name") ?: "Album"
         
-        Toast.makeText(this, "Album ID: $albumId, Album Name: $albumName", Toast.LENGTH_SHORT).show()
+
         
         if (albumId == -1L) {
-            Toast.makeText(this, "Invalid album ID, finishing activity", Toast.LENGTH_LONG).show()
+
             finish()
             return
         }
@@ -209,7 +209,7 @@ class PhotoImportActivity : AppCompatActivity() {
         viewModel.importComplete.observe(this) { (success, count, importedGalleryPhotos) ->
             if (success) {
                 val message = getString(R.string.photos_imported, count)
-                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+
                 
                 // Set result to indicate photos were imported successfully with count and gallery photos
                 val resultIntent = Intent().apply {
@@ -219,7 +219,7 @@ class PhotoImportActivity : AppCompatActivity() {
                 setResult(RESULT_OK, resultIntent)
                 finish()
             } else {
-                Toast.makeText(this, getString(R.string.import_failed), Toast.LENGTH_LONG).show()
+
                 binding.btnImport.isEnabled = true
                 binding.btnImport.text = getString(R.string.import_photos)
             }
@@ -228,7 +228,7 @@ class PhotoImportActivity : AppCompatActivity() {
         
         viewModel.error.observe(this) { error ->
             if (error.isNotEmpty()) {
-                Toast.makeText(this, error, Toast.LENGTH_LONG).show()
+
             }
         }
         
@@ -254,7 +254,7 @@ class PhotoImportActivity : AppCompatActivity() {
                     } else {
                         binding.llEmptyState.visibility = View.VISIBLE
                         binding.rvGalleryPhotos.visibility = View.GONE
-                        Toast.makeText(this@PhotoImportActivity, "No photos found in gallery. Add some photos to the emulator first!", Toast.LENGTH_LONG).show()
+
                     }
                 }
                 
@@ -262,7 +262,7 @@ class PhotoImportActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     binding.llLoading.visibility = View.GONE
                     binding.llEmptyState.visibility = View.VISIBLE
-                    Toast.makeText(this@PhotoImportActivity, "Failed to load photos", Toast.LENGTH_LONG).show()
+
                 }
             }
         }
@@ -344,7 +344,7 @@ class PhotoImportActivity : AppCompatActivity() {
                     intent.data = uri
                     startActivity(intent)
                 } catch (e: Exception) {
-                    Toast.makeText(this, "Please enable storage permission in system settings", Toast.LENGTH_LONG).show()
+
                 }
             }
             .setNegativeButton("Cancel") { _, _ ->
