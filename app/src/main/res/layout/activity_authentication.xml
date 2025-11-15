@@ -6,7 +6,8 @@
     android:orientation="vertical"
     android:background="@color/primary_color"
     android:padding="32dp"
-    android:gravity="center">
+    android:gravity="center"
+    android:fitsSystemWindows="true">
 
     <!-- App Logo/Icon -->
     <ImageView
