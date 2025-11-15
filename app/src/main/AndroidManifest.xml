@@ -57,7 +57,7 @@
             android:name=".activities.PhotoViewActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhotoVaultLocker.FullScreen" />
+            android:theme="@style/Theme.PhotoVaultLocker.NoActionBar" />
 
         <!-- Photo Import Activity -->
         <activity
