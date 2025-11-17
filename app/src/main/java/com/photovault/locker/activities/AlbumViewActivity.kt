@@ -101,7 +101,7 @@ class AlbumViewActivity : AppCompatActivity() {
                 // Show dialog after 3 seconds asking user if they want to delete from gallery
                 binding.rvPhotos.postDelayed({
                     showDeleteFromGalleryDialog(galleryPhotos)
-                }, 3000) // 3 second delay
+                }, 2000) // 3 second delay
             }
         }
     }
