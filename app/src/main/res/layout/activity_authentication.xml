@@ -71,7 +71,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 style="@style/AppEditText"
-                app:passwordToggleEnabled="true">
+                app:endIconMode="password_toggle">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPassword"
@@ -91,7 +91,7 @@
                 android:layout_marginBottom="24dp"
                 android:visibility="gone"
                 style="@style/AppEditText"
-                app:passwordToggleEnabled="true">
+                app:endIconMode="password_toggle">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etConfirmPassword"
