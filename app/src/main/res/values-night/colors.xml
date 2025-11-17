@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Custom App Colors - Dark Mode -->
+    <color name="primary_color">#FF2196F3</color>
+    <color name="primary_dark_color">#FF1976D2</color>
+    <color name="accent_color">#FFFF4081</color>
+    <color name="background_color">#FF121212</color>
+    <color name="surface_color">#FF1E1E1E</color>
+    <color name="error_color">#FFF44336</color>
+    
+    <!-- Text Colors - Dark Mode -->
+    <color name="text_primary">#DEFFFFFF</color>
+    <color name="text_secondary">#99FFFFFF</color>
+    <color name="text_hint">#61FFFFFF</color>
+    <color name="text_on_primary">#FFFFFF</color>
+    
+    <!-- Card and Button Colors - Dark Mode -->
+    <color name="card_background">#FF2C2C2C</color>
+    <color name="button_background">#FF2196F3</color>
+    <color name="button_text">#FFFFFF</color>
+    
+    <!-- Album Colors -->
+    <color name="album_overlay">#80000000</color>
+    
+    <!-- Photo Selection -->
+    <color name="selection_overlay">#CC000000</color>
+    <color name="selected_border">#FF2196F3</color>
+
+    <!-- Bin Photo Color -->
+    <color name="bin_overlay">#4D424242</color>
+</resources>
+

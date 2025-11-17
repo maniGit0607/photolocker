@@ -44,7 +44,8 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
         app:cardCornerRadius="12dp"
-        app:cardElevation="8dp">
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="@color/white">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -60,7 +61,7 @@
                 android:text="@string/enter_password"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="@color/text_primary"
+                android:textColor="#DE000000"
                 android:layout_marginBottom="24dp"
                 android:layout_gravity="center_horizontal" />
 
@@ -70,7 +71,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                style="@style/AppEditText"
+                style="@style/AppEditText.Light"
                 app:endIconMode="password_toggle">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -79,6 +80,7 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/password_hint"
                     android:inputType="textPassword"
+                    android:textColor="#DE000000"
                     android:maxLines="1" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -90,7 +92,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
                 android:visibility="gone"
-                style="@style/AppEditText"
+                style="@style/AppEditText.Light"
                 app:endIconMode="password_toggle">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -99,6 +101,7 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/confirm_password"
                     android:inputType="textPassword"
+                    android:textColor="#DE000000"
                     android:maxLines="1" />
 
             </com.google.android.material.textfield.TextInputLayout>
