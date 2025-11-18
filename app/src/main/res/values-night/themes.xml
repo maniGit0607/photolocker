@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme for night mode. -->
-    <style name="Theme.PhotoVaultLocker" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <style name="Theme.PhotoVaultLocker" parent="Theme.Material3.DayNight">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/primary_color</item>
         <item name="colorPrimaryVariant">@color/primary_dark_color</item>
