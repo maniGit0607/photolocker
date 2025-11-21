@@ -128,41 +128,67 @@ class PhotoImportActivity : AppCompatActivity() {
             layoutManager = GridLayoutManager(this@PhotoImportActivity, 3)
             adapter = galleryAdapter
             
-            // Add drag selection touch listener
+            // Add drag selection touch listener with scroll detection
             addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
                 private var isDragging = false
                 private var lastDraggedPosition = -1
+                private var initialX = 0f
+                private var initialY = 0f
+                private var hasMovedBeyondSlop = false
+                private val touchSlop = android.view.ViewConfiguration.get(this@PhotoImportActivity).scaledTouchSlop
                 
                 override fun onInterceptTouchEvent(rv: RecyclerView, e: android.view.MotionEvent): Boolean {
                     when (e.action) {
                         android.view.MotionEvent.ACTION_DOWN -> {
+                            // Reset state
+                            isDragging = false
+                            hasMovedBeyondSlop = false
+                            initialX = e.x
+                            initialY = e.y
+                            lastDraggedPosition = -1
+                            
                             // Check if touch is on an item
                             val view = rv.findChildViewUnder(e.x, e.y)
                             if (view != null) {
                                 val position = rv.getChildAdapterPosition(view)
                                 if (position != RecyclerView.NO_POSITION) {
-                                    isDragging = false // Will become true on ACTION_MOVE
                                     lastDraggedPosition = position
                                 }
                             }
                         }
                         android.view.MotionEvent.ACTION_MOVE -> {
-                            if (!isDragging) {
-                                isDragging = true
-                                galleryAdapter.startDragSelection()
-                                // Handle the first item
-                                if (lastDraggedPosition != -1) {
-                                    galleryAdapter.handleDragSelection(lastDraggedPosition)
+                            // Only start drag selection if moved beyond touch slop
+                            if (!hasMovedBeyondSlop) {
+                                val dx = Math.abs(e.x - initialX)
+                                val dy = Math.abs(e.y - initialY)
+                                
+                                // Check if movement exceeds touch slop
+                                if (dx > touchSlop || dy > touchSlop) {
+                                    hasMovedBeyondSlop = true
+                                    
+                                    // Only enable drag selection if horizontal movement is significant
+                                    // or if moving within the same row (not scrolling vertically)
+                                    if (dx > dy * 0.5f) {
+                                        // More horizontal than vertical - likely drag selection
+                                        isDragging = true
+                                        galleryAdapter.startDragSelection()
+                                        if (lastDraggedPosition != -1) {
+                                            galleryAdapter.handleDragSelection(lastDraggedPosition)
+                                        }
+                                    }
+                                    // If dy > dx, it's a scroll gesture - don't start drag selection
                                 }
                             }
                             
-                            // Handle drag over items
-                            val view = rv.findChildViewUnder(e.x, e.y)
-                            if (view != null) {
-                                val position = rv.getChildAdapterPosition(view)
-                                if (position != RecyclerView.NO_POSITION && position != lastDraggedPosition) {
-                                    galleryAdapter.handleDragSelection(position)
-                                    lastDraggedPosition = position
+                            // Handle drag over items only if in drag mode
+                            if (isDragging) {
+                                val view = rv.findChildViewUnder(e.x, e.y)
+                                if (view != null) {
+                                    val position = rv.getChildAdapterPosition(view)
+                                    if (position != RecyclerView.NO_POSITION && position != lastDraggedPosition) {
+                                        galleryAdapter.handleDragSelection(position)
+                                        lastDraggedPosition = position
+                                    }
                                 }
                             }
                         }
@@ -170,12 +196,17 @@ class PhotoImportActivity : AppCompatActivity() {
                             if (isDragging) {
                                 galleryAdapter.endDragSelection()
                                 isDragging = false
+                                hasMovedBeyondSlop = false
                                 lastDraggedPosition = -1
                                 return true // Consume the event to prevent click
                             }
+                            // Reset state
+                            isDragging = false
+                            hasMovedBeyondSlop = false
+                            lastDraggedPosition = -1
                         }
                     }
-                    return false // Don't intercept, let click events through
+                    return false // Don't intercept, let RecyclerView handle scrolling
                 }
                 
                 override fun onTouchEvent(rv: RecyclerView, e: android.view.MotionEvent) {
