@@ -13,8 +13,8 @@ android {
         applicationId "com.photovault.locker"
         minSdk 30  // Android 11+ (API 30+)
         targetSdk 36
-        versionCode 3
-        versionName "3.0"
+        versionCode 6
+        versionName "6.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

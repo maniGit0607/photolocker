@@ -19,14 +19,17 @@
         <item name="colorSurface">@color/surface_color</item>
         <item name="colorOnSurface">@color/text_primary</item>
         
-        <!-- Status bar - transparent for edge-to-edge -->
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <!-- Status bar - primary color -->
+        <item name="android:statusBarColor">@color/primary_color</item>
+        <item name="android:navigationBarColor">@color/primary_color</item>
         
         <!-- Enable edge-to-edge -->
         <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="p">shortEdges</item>
         <item name="android:enforceNavigationBarContrast" tools:targetApi="q">false</item>
         <item name="android:enforceStatusBarContrast" tools:targetApi="q">false</item>
+        
+        <!-- Global Font -->
+        <item name="android:fontFamily">@font/app_font</item>
     </style>
     
     <style name="Theme.PhotoVaultLocker.NoActionBar">

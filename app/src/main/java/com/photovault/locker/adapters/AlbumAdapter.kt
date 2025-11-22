@@ -45,7 +45,12 @@ class AlbumAdapter(
                 tvPhotoCount.text = photoCountText
                 
                 // Load cover image
+                // Load cover image and handle card styling
                 if (album.coverPhotoPath != null) {
+                    cvAlbumCover.setCardBackgroundColor(root.context.getColor(R.color.card_background))
+                    cvAlbumCover.strokeWidth = 0
+                    ivAlbumCover.clearColorFilter()
+                    
                     Glide.with(ivAlbumCover.context)
                         .load(album.coverPhotoPath)
                         .centerCrop()
@@ -53,7 +58,12 @@ class AlbumAdapter(
                         .error(R.drawable.ic_photo_album)
                         .into(ivAlbumCover)
                 } else {
-                    ivAlbumCover.setImageResource(R.drawable.ic_photo_album)
+                    // Empty state: Transparent with light blue border
+                    cvAlbumCover.setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
+                    cvAlbumCover.strokeColor = root.context.getColor(R.color.light_blue_border)
+                    cvAlbumCover.strokeWidth = (1 * root.context.resources.displayMetrics.density).toInt()
+                    
+                    ivAlbumCover.setImageDrawable(null)
                 }
                 
                 // Set click listeners

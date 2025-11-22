@@ -753,17 +753,35 @@ class AlbumViewActivity : AppCompatActivity() {
                     else -> "Failed to export photos"
                 }
                 
-
-                
-                // Disable selection mode after export
                 if (successCount > 0) {
+                    showSuccessDialog(message)
                     photoAdapter.disableSelectionMode()
+                } else {
+                    android.widget.Toast.makeText(this@AlbumViewActivity, message, android.widget.Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 android.util.Log.e("AlbumViewActivity", "Export failed: ${e.message}")
-
+                android.widget.Toast.makeText(this@AlbumViewActivity, "Export failed: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
             }
         }
+    }
+    
+    private fun showSuccessDialog(message: String) {
+        val dialogBinding = com.photovault.locker.databinding.DialogSuccessBinding.inflate(layoutInflater)
+        
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setView(dialogBinding.root)
+            .setCancelable(true)
+            .create()
+            
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        
+        dialogBinding.tvMessage.text = message
+        dialogBinding.btnDone.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        dialog.show()
     }
     
     // Gallery deletion dialog method removed - deletion is now automatic

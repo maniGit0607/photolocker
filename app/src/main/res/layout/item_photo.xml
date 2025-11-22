@@ -43,7 +43,7 @@
             android:layout_height="32dp"
             android:layout_margin="8dp"
             android:layout_gravity="top|end"
-            android:src="@drawable/ic_check_circle"
+            android:src="@drawable/ic_check_circle_white_tick"
             android:visibility="gone"
             android:contentDescription="Selected" />
 

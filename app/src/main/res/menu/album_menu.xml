@@ -4,17 +4,17 @@
 
     <item
         android:id="@+id/action_grid_small"
-        android:title="Grid: Small"
+        android:title="Compact"
         android:icon="@drawable/ic_photo"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_grid_medium"
-        android:title="Grid: Medium"
+        android:title="Standard"
         android:icon="@drawable/ic_photo"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_grid_large"
-        android:title="Grid: Large"
+        android:title="High"
         android:icon="@drawable/ic_photo"
         app:showAsAction="never" />
 

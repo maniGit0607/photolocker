@@ -9,7 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     
     <!-- Custom App Colors -->
-    <color name="primary_color">#FF2196F3</color>
+    <color name="primary_color">#503fa6</color>
     <color name="primary_dark_color">#FF1976D2</color>
     <color name="accent_color">#FFFF4081</color>
     <color name="background_color">#FFF5F5F5</color>
@@ -24,7 +24,7 @@
     
     <!-- Card and Button Colors -->
     <color name="card_background">#FFFFFF</color>
-    <color name="button_background">#FF2196F3</color>
+    <color name="button_background">#503fa6</color>
     <color name="button_text">#FFFFFF</color>
     
     <!-- Album Colors -->
@@ -32,9 +32,10 @@
     
     <!-- Photo Selection -->
     <color name="selection_overlay">#000000F3</color>
-    <color name="selected_border">#FF2196F3</color>
+    <color name="selected_border">#503fa6</color>
 
     <!-- Bin Photo Color -->
     <color name="bin_overlay">#4DF0F0F3</color>
+    <color name="light_blue_border">#503fa6</color>
 </resources>
 

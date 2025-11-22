@@ -5,7 +5,7 @@
     <item
         android:id="@+id/action_restore"
         android:title="Restore"
-        android:icon="@drawable/ic_check_circle"
+        android:icon="@drawable/ic_export"
         app:showAsAction="ifRoom"
         app:iconTint="@color/white"
         android:enabled="false" />

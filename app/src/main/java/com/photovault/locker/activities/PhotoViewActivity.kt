@@ -177,7 +177,26 @@ class PhotoViewActivity : AppCompatActivity() {
         if (currentPosition < photos.size) {
             val currentPhoto = photos[currentPosition]
             viewModel.setCoverPhoto(currentPhoto)
+            showSuccessDialog(getString(R.string.cover_photo_updated))
         }
+    }
+    
+    private fun showSuccessDialog(message: String) {
+        val dialogBinding = com.photovault.locker.databinding.DialogSuccessBinding.inflate(layoutInflater)
+        
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setView(dialogBinding.root)
+            .setCancelable(true)
+            .create()
+            
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        
+        dialogBinding.tvMessage.text = message
+        dialogBinding.btnDone.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        dialog.show()
     }
     
     private fun toggleOverlayVisibility() {
